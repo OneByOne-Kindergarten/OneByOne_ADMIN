@@ -20,18 +20,21 @@ interface AdminProfile {
 }
 
 export const authProvider: AuthProvider = {
-  // 로그인 처리 (실제 OneByOne API 사용)
   login: async ({ username, password }) => {
     try {
-      // 실제 OneByOne API 로그인 엔드포인트 사용
       const response = await apiCall<
-        { email: string; password: string },
+        { email: string; password: string; fcmToken: string },
         ApiLoginResponse
       >({
         method: "POST",
         path: API_PATHS.USERS.SIGN_IN,
-        data: { email: username, password }, // OneByOne API는 email 필드 사용
+        data: {
+          email: username,
+          password,
+          fcmToken: "string",
+        },
         withAuth: false,
+        withCredentials: true,
       });
 
       // 토큰 저장
@@ -40,15 +43,15 @@ export const authProvider: AuthProvider = {
       // 사용자 정보 조회하여 어드민 권한 확인
       const userInfo = await apiCall<
         void,
-        { role: string; nickname: string; userId: number }
+        { user: { role: string; nickname: string; userId: number } }
       >({
         method: "GET",
         path: API_PATHS.USERS.BASE,
         withAuth: true,
       });
 
-      // ADMIN 역할 확인
-      if (userInfo.role !== "ADMIN") {
+      if (userInfo.user.role !== "ADMIN") {
+        console.log(userInfo);
         removeAdminToken();
         throw new Error("관리자 권한이 없습니다.");
       }
@@ -58,10 +61,10 @@ export const authProvider: AuthProvider = {
         "adminAuth",
         JSON.stringify({
           user: {
-            id: userInfo.userId,
+            id: userInfo.user.userId,
             email: username,
-            nickname: userInfo.nickname,
-            role: userInfo.role,
+            nickname: userInfo.user.nickname,
+            role: userInfo.user.role,
             permissions: ["admin"],
           },
           refreshToken: response.refreshToken,
@@ -114,7 +117,7 @@ export const authProvider: AuthProvider = {
       // 실제 OneByOne API로 사용자 정보 확인
       const userInfo = await apiCall<
         void,
-        { role: string; nickname: string; userId: number }
+        { user: { role: string; nickname: string; userId: number } }
       >({
         method: "GET",
         path: API_PATHS.USERS.BASE,
@@ -122,7 +125,7 @@ export const authProvider: AuthProvider = {
       });
 
       // 관리자 권한 재확인
-      if (userInfo.role !== "ADMIN") {
+      if (userInfo.user.role !== "ADMIN") {
         removeAdminToken();
         localStorage.removeItem("adminAuth");
         return Promise.reject();
@@ -140,13 +143,13 @@ export const authProvider: AuthProvider = {
           await refreshAuthToken(refreshToken);
 
           // 리프레시 후 다시 권한 확인
-          const userInfo = await apiCall<void, { role: string }>({
+          const userInfo = await apiCall<void, { user: { role: string } }>({
             method: "GET",
             path: API_PATHS.USERS.BASE,
             withAuth: true,
           });
 
-          if (userInfo.role === "ADMIN") {
+          if (userInfo.user.role === "ADMIN") {
             return Promise.resolve();
           } else {
             throw new Error("권한 없음");
@@ -241,7 +244,7 @@ export const authProvider: AuthProvider = {
   },
 };
 
-// 토큰 리프레시 함수 (실제 OneByOne API 사용)
+// 토큰 리프레시 함수
 async function refreshAuthToken(refreshToken: string): Promise<void> {
   try {
     const response = await apiCall<

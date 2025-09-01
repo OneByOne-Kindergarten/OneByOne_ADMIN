@@ -108,7 +108,7 @@ export const API_PATHS = {
 
 // API 기본 설정
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_URL || "https://api.onebyone.live",
+  BASE_URL: import.meta.env.DEV ? "/api" : import.meta.env.VITE_API_URL || "",
   TIMEOUT: 10000,
   RETRY_COUNT: 3,
 };
