@@ -23,7 +23,7 @@ export const authProvider: AuthProvider = {
   login: async ({ username, password }) => {
     try {
       const response = await apiCall<
-        { email: string; password: string; fcmToken: string },
+        { email: string; password: string },
         ApiLoginResponse
       >({
         method: "POST",
@@ -31,7 +31,6 @@ export const authProvider: AuthProvider = {
         data: {
           email: username,
           password,
-          fcmToken: "string",
         },
         withAuth: false,
         withCredentials: true,

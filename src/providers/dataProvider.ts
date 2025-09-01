@@ -2,6 +2,40 @@ import { apiCallWithRetry } from "@/utils/api";
 import { API_PATHS } from "@/config/api";
 import type { PaginatedResponse } from "@/config/api";
 
+// 리소스별 ID 필드 매핑
+const ID_FIELD_MAP: Record<string, string> = {
+  users: "userId",
+  community: "communityId",
+  inquiries: "inquiryId",
+  work_reviews: "workReviewId",
+  internship_reviews: "internshipReviewId",
+};
+
+// 범용 ID 매핑 함수
+const normalizeId = (item: any, resource: string): any => {
+  const idField = ID_FIELD_MAP[resource];
+
+  if (idField && item[idField]) {
+    return { ...item, id: item[idField] };
+  }
+
+  if (item.id) {
+    return item;
+  }
+
+  // 자동으로 ID 필드 찾기
+  const possibleIdFields = Object.keys(item).filter(
+    (key) => key.toLowerCase().includes("id") && typeof item[key] === "number"
+  );
+
+  if (possibleIdFields.length > 0) {
+    return { ...item, id: item[possibleIdFields[0]] };
+  }
+
+  console.warn(`No ID field found for ${resource}:`, item);
+  return { ...item, id: Date.now() + Math.random() };
+};
+
 // 리소스별 API 경로 매핑
 const getResourcePath = (resource: string, params?: any): string => {
   const pathMap: Record<string, string> = {
@@ -79,9 +113,21 @@ export const dataProvider = {
         }
       );
 
+      // API 응답이 래핑된 형태인지 확인
+      const responseData = (response as any).data || response;
+
+      // 각 레코드에 id 필드 매핑
+      const normalizedData = (responseData.content || responseData || []).map(
+        (item: any) => normalizeId(item, resource)
+      );
+
       return {
-        data: response.content || [],
-        total: response.totalElements || 0,
+        data: normalizedData,
+        total:
+          responseData.totalElements ||
+          response.totalElements ||
+          normalizedData.length ||
+          0,
       };
     } catch (error) {
       console.error(`Failed to fetch ${resource}:`, error);
@@ -94,10 +140,10 @@ export const dataProvider = {
     const path =
       resource === "users"
         ? API_PATHS.USERS.DETAIL(parseInt(params.id))
-        : resource === "kindergartens"
-        ? API_PATHS.KINDERGARTEN.DETAIL(parseInt(params.id))
         : resource === "inquiries"
         ? API_PATHS.INQUIRY.DETAIL(parseInt(params.id))
+        : resource === "community"
+        ? API_PATHS.COMMUNITY.DETAIL(parseInt(params.id))
         : `${basePath}/${params.id}`;
 
     try {
@@ -106,7 +152,15 @@ export const dataProvider = {
         path,
       });
 
-      return { data: response };
+      // API 응답이 {success: true, data: {...}} 형태인지 확인
+      const responseData = response as any;
+      const data = responseData.data || responseData;
+
+      // React-Admin은 모든 레코드에 id 필드가 있어야 함
+      // API 응답의 실제 ID 필드를 id로 매핑
+      const normalizedData = normalizeId(data, resource);
+
+      return { data: normalizedData };
     } catch (error) {
       console.error(`Failed to fetch ${resource} ${params.id}:`, error);
       throw new Error(`${resource} 상세 정보를 불러오는데 실패했습니다.`);
@@ -124,7 +178,11 @@ export const dataProvider = {
       );
 
       const responses = await Promise.all(promises);
-      return { data: responses };
+      const normalizedResponses = responses.map((response: any) => {
+        const data = (response as any).data || response;
+        return normalizeId(data, resource);
+      });
+      return { data: normalizedResponses };
     } catch (error) {
       console.error(`Failed to fetch multiple ${resource}:`, error);
       throw new Error(`${resource} 목록을 불러오는데 실패했습니다.`);
