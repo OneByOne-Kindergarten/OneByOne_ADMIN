@@ -16,7 +16,6 @@ const UserFilter = () => (
   <Card sx={{ order: -1, mr: 2, mt: 9, width: 200 }}>
     <CardContent>
       <FilterList label="역할별" icon={<></>}>
-        <FilterListItem label="전체" value={{}} />
         <FilterListItem label="교사" value={{ role: "TEACHER" }} />
         <FilterListItem
           label="예비교사"

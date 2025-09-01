@@ -3,19 +3,24 @@ import { API_PATHS } from "@/config/api";
 import type { PaginatedResponse } from "@/config/api";
 
 // 리소스별 API 경로 매핑
-const getResourcePath = (resource: string): string => {
+const getResourcePath = (resource: string, params?: any): string => {
   const pathMap: Record<string, string> = {
     users: API_PATHS.USERS.BASE,
-    kindergartens: API_PATHS.KINDERGARTEN.BASE,
     inquiries: API_PATHS.INQUIRY.ALL,
     community: API_PATHS.COMMUNITY.BASE,
-    reviews: API_PATHS.REVIEWS.WORK.BASE, // 근무 리뷰
-    internship_reviews: API_PATHS.REVIEWS.INTERNSHIP.BASE, // 실습 리뷰
     notices: API_PATHS.NOTICE.BASE,
     reports: API_PATHS.REPORT.BASE,
     favorites: API_PATHS.FAVORITE.BASE,
     notifications: API_PATHS.NOTIFICATION.MY,
   };
+
+  // 리뷰는 kindergartenId가 필수이므로 특별 처리
+  if (resource === "work_reviews" && params?.kindergartenId) {
+    return API_PATHS.REVIEWS.WORK.LIST(params.kindergartenId);
+  }
+  if (resource === "internship_reviews" && params?.kindergartenId) {
+    return API_PATHS.REVIEWS.INTERNSHIP.LIST(params.kindergartenId);
+  }
 
   return pathMap[resource] || `/${resource}`;
 };
@@ -45,6 +50,16 @@ export const dataProvider = {
     const { page, perPage } = params.pagination || { page: 1, perPage: 10 };
     const { field, order } = params.sort || { field: "id", order: "ASC" };
 
+    // 리뷰 리소스인 경우 kindergartenId가 필수
+    if (
+      (resource === "work_reviews" || resource === "internship_reviews") &&
+      !params.filter?.kindergartenId
+    ) {
+      throw new Error(
+        "유치원 ID를 입력해주세요. 리뷰 조회를 위해서는 유치원 ID가 필요합니다."
+      );
+    }
+
     const queryParams = {
       page: String(page - 1), // 0-based pagination
       size: String(perPage),
@@ -52,7 +67,7 @@ export const dataProvider = {
       ...formatFilterParams(params.filter),
     };
 
-    const path = getResourcePath(resource);
+    const path = getResourcePath(resource, params.filter);
     const queryString = new URLSearchParams(queryParams).toString();
     const fullPath = `${path}?${queryString}`;
 

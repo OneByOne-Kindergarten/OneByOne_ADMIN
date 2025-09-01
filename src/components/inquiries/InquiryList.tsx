@@ -15,10 +15,9 @@ const InquiryFilter = () => (
   <Card sx={{ order: -1, mr: 2, mt: 9, width: 200 }}>
     <CardContent>
       <FilterList label="상태별" icon={<></>}>
-        <FilterListItem label="전체" value={{}} />
         <FilterListItem label="대기중" value={{ status: "PENDING" }} />
-        <FilterListItem label="처리완료" value={{ status: "COMPLETED" }} />
-        <FilterListItem label="처리중" value={{ status: "IN_PROGRESS" }} />
+        <FilterListItem label="답변완료" value={{ status: "ANSWERED" }} />
+        <FilterListItem label="닫기" value={{ status: "CLOSED" }} />
       </FilterList>
     </CardContent>
   </Card>
@@ -26,8 +25,8 @@ const InquiryFilter = () => (
 
 const statusChoices = [
   { id: "PENDING", name: "대기중" },
-  { id: "IN_PROGRESS", name: "처리중" },
-  { id: "COMPLETED", name: "처리완료" },
+  { id: "ANSWERED", name: "답변완료" },
+  { id: "CLOSED", name: "닫기" },
 ];
 
 export const InquiryList = () => (
