@@ -1,4 +1,3 @@
-import React from "react";
 import {
   List,
   Datagrid,
@@ -10,7 +9,6 @@ import {
   CreateButton,
   ExportButton,
   FilterButton,
-  TextInput,
   NumberInput,
   SelectInput,
 } from "react-admin";
