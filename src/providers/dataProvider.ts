@@ -5,6 +5,7 @@ import type { PaginatedResponse } from "@/config/api";
 // 리소스별 ID 필드 매핑
 const ID_FIELD_MAP: Record<string, string> = {
   users: "userId",
+  kindergartens: "kindergartenId",
   community: "communityId",
   inquiries: "inquiryId",
   work_reviews: "workReviewId",
@@ -39,7 +40,8 @@ const normalizeId = (item: any, resource: string): any => {
 // 리소스별 API 경로 매핑
 const getResourcePath = (resource: string, params?: any): string => {
   const pathMap: Record<string, string> = {
-    users: API_PATHS.USERS.BASE,
+    users: API_PATHS.USERS.BASE, // 현재는 단일 사용자 정보만 반환
+    kindergartens: API_PATHS.KINDERGARTEN.BASE,
     inquiries: API_PATHS.INQUIRY.ALL,
     community: API_PATHS.COMMUNITY.BASE,
     notices: API_PATHS.NOTICE.BASE,
@@ -47,6 +49,11 @@ const getResourcePath = (resource: string, params?: any): string => {
     favorites: API_PATHS.FAVORITE.BASE,
     notifications: API_PATHS.NOTIFICATION.MY,
   };
+
+  // 문의 상태별 조회
+  if (resource === "inquiries" && params?.status) {
+    return API_PATHS.INQUIRY.STATUS(params.status);
+  }
 
   // 리뷰는 kindergartenId가 필수이므로 특별 처리
   if (resource === "work_reviews" && params?.kindergartenId) {
@@ -131,6 +138,12 @@ export const dataProvider = {
       };
     } catch (error) {
       console.error(`Failed to fetch ${resource}:`, error);
+
+      // 401 오류인 경우 더 구체적인 메시지
+      if ((error as any)?.status === 401) {
+        throw new Error(`인증이 만료되었습니다. 다시 로그인해주세요.`);
+      }
+
       throw new Error(`${resource} 목록을 불러오는데 실패했습니다.`);
     }
   },

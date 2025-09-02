@@ -7,6 +7,7 @@ import { InquiryList } from "./components/inquiries/InquiryList";
 import { CommunityList } from "./components/community/CommunityList";
 import { WorkReviewList } from "./components/reviews/WorkReviewList";
 import { InternshipReviewList } from "./components/reviews/InternshipReviewList";
+import { KindergartenList } from "./components/kindergartens/KindergartenList";
 
 function App() {
   return (
@@ -22,6 +23,14 @@ function App() {
         show={ShowGuesser}
         edit={EditGuesser}
         options={{ label: "사용자 관리" }}
+      />
+
+      <Resource
+        name="kindergartens"
+        list={KindergartenList}
+        show={ShowGuesser}
+        edit={EditGuesser}
+        options={{ label: "유치원 관리" }}
       />
 
       <Resource

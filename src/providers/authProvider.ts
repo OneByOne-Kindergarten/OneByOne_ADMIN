@@ -166,14 +166,32 @@ export const authProvider: AuthProvider = {
   },
 
   // 오류 처리 (401, 403 등)
-  checkError: (error) => {
+  checkError: async (error) => {
     const status = error.status;
 
     if (status === 401) {
-      // 인증 실패
-      removeAdminToken();
-      localStorage.removeItem("adminAuth");
-      return Promise.reject();
+      // 인증 실패 - 토큰 갱신 시도
+      const authData = localStorage.getItem("adminAuth");
+      if (authData) {
+        try {
+          const { refreshToken } = JSON.parse(authData);
+          await refreshAuthToken(refreshToken);
+
+          // 갱신 성공 시 계속 진행
+          return Promise.resolve();
+        } catch (refreshError) {
+          console.error("Token refresh in checkError failed:", refreshError);
+          // 갱신 실패 시에만 토큰 삭제
+          removeAdminToken();
+          localStorage.removeItem("adminAuth");
+          return Promise.reject();
+        }
+      } else {
+        // 인증 데이터가 없으면 토큰 삭제
+        removeAdminToken();
+        localStorage.removeItem("adminAuth");
+        return Promise.reject();
+      }
     }
 
     if (status === 403) {

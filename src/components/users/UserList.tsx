@@ -7,25 +7,45 @@ import {
   EditButton,
   ShowButton,
   SelectField,
-  FilterList,
-  FilterListItem,
+  TopToolbar,
+  CreateButton,
+  ExportButton,
+  FilterButton,
+  TextInput,
+  SearchInput,
+  SelectInput,
 } from "react-admin";
-import { Card, CardContent } from "@mui/material";
 
-const UserFilter = () => (
-  <Card sx={{ order: -1, mr: 2, mt: 9, width: 200 }}>
-    <CardContent>
-      <FilterList label="역할별" icon={<></>}>
-        <FilterListItem label="교사" value={{ role: "TEACHER" }} />
-        <FilterListItem
-          label="예비교사"
-          value={{ role: "PROSPECTIVE_TEACHER" }}
-        />
-        <FilterListItem label="일반사용자" value={{ role: "GENERAL" }} />
-        <FilterListItem label="관리자" value={{ role: "ADMIN" }} />
-      </FilterList>
-    </CardContent>
-  </Card>
+const UserFilters = [
+  <SearchInput source="nickname" alwaysOn placeholder="닉네임" />,
+  <SearchInput source="userId" alwaysOn placeholder="사용자 ID" />,
+  <SelectInput
+    label="역할"
+    source="role"
+    choices={[
+      { id: "TEACHER", name: "교사" },
+      { id: "PROSPECTIVE_TEACHER", name: "예비교사" },
+      { id: "GENERAL", name: "일반사용자" },
+      { id: "ADMIN", name: "관리자" },
+    ]}
+    emptyText="전체"
+    alwaysOn
+    sx={{
+      "& .MuiInputBase-root": {
+        height: "42px",
+        fontSize: "14px",
+      },
+    }}
+  />,
+  <TextInput label="경력" source="career" />,
+];
+
+const UserActions = () => (
+  <TopToolbar>
+    <FilterButton />
+    <CreateButton />
+    <ExportButton />
+  </TopToolbar>
 );
 
 const roleChoices = [
@@ -36,7 +56,13 @@ const roleChoices = [
 ];
 
 export const UserList = () => (
-  <List aside={<UserFilter />} title="사용자 관리">
+  <List
+    filters={UserFilters}
+    actions={<UserActions />}
+    title="사용자 관리"
+    perPage={25}
+    sort={{ field: "createdAt", order: "DESC" }}
+  >
     <Datagrid rowClick="show">
       <TextField source="userId" label="사용자 ID" />
       <TextField source="nickname" label="닉네임" />

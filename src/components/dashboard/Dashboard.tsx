@@ -30,36 +30,24 @@ const StatCard = ({
 );
 
 export const Dashboard = () => {
-  // 각 리소스별 총 개수 가져오기
-  const { data: usersData } = useGetList("users", {
-    pagination: { page: 1, perPage: 1 },
-    sort: { field: "id", order: "DESC" },
-    filter: {},
-  });
+  // 현재 사용 가능한 리소스별 총 개수 가져오기
+  const { data: inquiriesData, total: inquiriesTotal } = useGetList(
+    "inquiries",
+    {
+      pagination: { page: 1, perPage: 1 },
+      sort: { field: "inquiryId", order: "DESC" },
+      filter: {},
+    }
+  );
 
-  const { data: kindergartensData } = useGetList("kindergartens", {
-    pagination: { page: 1, perPage: 1 },
-    sort: { field: "id", order: "DESC" },
-    filter: {},
-  });
-
-  const { data: inquiriesData } = useGetList("inquiries", {
-    pagination: { page: 1, perPage: 1 },
-    sort: { field: "id", order: "DESC" },
-    filter: {},
-  });
-
-  const { data: communityData } = useGetList("community", {
-    pagination: { page: 1, perPage: 1 },
-    sort: { field: "id", order: "DESC" },
-    filter: {},
-  });
-
-  const { data: reviewsData } = useGetList("reviews", {
-    pagination: { page: 1, perPage: 1 },
-    sort: { field: "id", order: "DESC" },
-    filter: {},
-  });
+  const { data: communityData, total: communityTotal } = useGetList(
+    "community",
+    {
+      pagination: { page: 1, perPage: 1 },
+      sort: { field: "communityId", order: "DESC" },
+      filter: {},
+    }
+  );
 
   return (
     <Box sx={{ p: 3 }}>
@@ -68,45 +56,24 @@ export const Dashboard = () => {
       </Typography>
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={2.4}>
-          <StatCard
-            title="총 사용자 수"
-            value={usersData?.total || 0}
-            color="#2196f3"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4}>
-          <StatCard
-            title="유치원 수"
-            value={kindergartensData?.total || 0}
-            color="#4caf50"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4}>
+        <Grid item xs={12} sm={6} md={6} component="div">
           <StatCard
             title="미처리 문의"
-            value={inquiriesData?.total || 0}
+            value={inquiriesTotal || 0}
             color="#ff9800"
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={2.4}>
+        <Grid item xs={12} sm={6} md={6} component="div">
           <StatCard
             title="커뮤니티 글"
-            value={communityData?.total || 0}
+            value={communityTotal || 0}
             color="#9c27b0"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={2.4}>
-          <StatCard
-            title="리뷰 수"
-            value={reviewsData?.total || 0}
-            color="#f44336"
           />
         </Grid>
       </Grid>
 
       <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} component="div">
           <Card>
             <CardHeader title="최근 활동" />
             <CardContent>
@@ -130,7 +97,7 @@ export const Dashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} component="div">
           <Card>
             <CardHeader title="시스템 상태" />
             <CardContent>
