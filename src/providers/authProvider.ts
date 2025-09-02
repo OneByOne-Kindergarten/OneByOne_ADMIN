@@ -8,20 +8,11 @@ interface ApiLoginResponse {
   refreshToken: string;
 }
 
-interface AdminProfile {
-  id: number;
-  username: string;
-  fullName: string;
-  role: string;
-  permissions: string[];
-  lastLoginAt: string;
-}
-
 export const authProvider: AuthProvider = {
   login: async ({ username, password }) => {
     try {
       const response = await apiCall<
-        { email: string; password: string },
+        { email: string; password: string; fcmToken: string },
         ApiLoginResponse
       >({
         method: "POST",
@@ -29,6 +20,7 @@ export const authProvider: AuthProvider = {
         data: {
           email: username,
           password,
+          fcmToken: "admin-dashboard",
         },
         withAuth: false,
         withCredentials: true,
@@ -68,11 +60,15 @@ export const authProvider: AuthProvider = {
         })
       );
 
+      // 로그인 완료 플래그 설정
+      localStorage.setItem("admin_logged_in", "true");
+
       return Promise.resolve();
     } catch (error) {
       console.error("Admin login failed:", error);
       removeAdminToken();
       localStorage.removeItem("adminAuth");
+      localStorage.removeItem("admin_logged_in");
 
       if (error instanceof Error) {
         throw new Error(error.message);
@@ -94,108 +90,42 @@ export const authProvider: AuthProvider = {
     } finally {
       removeAdminToken();
       localStorage.removeItem("adminAuth");
+      localStorage.removeItem("admin_logged_in");
     }
 
     return Promise.resolve();
   },
 
-  // 인증 상태 확인
-  checkAuth: async () => {
+  // 인증 상태 확인 - 처음 진입시 항상 로그인 페이지 표시
+  checkAuth: () => {
+    // 로컬 스토리지에서 로그인 완료 플래그 확인
+    const isLoggedIn = localStorage.getItem("admin_logged_in");
     const token = getAdminToken();
+    const adminAuth = localStorage.getItem("adminAuth");
 
-    if (!token) {
-      // 토큰이 없으면 조용히 로그인 페이지로 리다이렉트
-      return Promise.reject();
-    }
-
-    try {
-      // 사용자 정보 확인
-      const userInfo = await apiCall<
-        void,
-        { user: { role: string; nickname: string; userId: number } }
-      >({
-        method: "GET",
-        path: API_PATHS.USERS.BASE,
-        withAuth: true,
-      });
-
-      // 관리자 권한 재확인
-      if (userInfo.user.role !== "ADMIN") {
-        removeAdminToken();
-        localStorage.removeItem("adminAuth");
-        return Promise.reject();
-      }
-
-      return Promise.resolve();
-    } catch (error) {
-      console.error("Auth check failed:", error);
-
-      // 토큰이 만료된 경우 리프레시 시도
-      const authData = localStorage.getItem("adminAuth");
-      if (authData) {
-        try {
-          const { refreshToken } = JSON.parse(authData);
-          await refreshAuthToken(refreshToken);
-
-          // 리프레시 후 다시 권한 확인
-          const userInfo = await apiCall<void, { user: { role: string } }>({
-            method: "GET",
-            path: API_PATHS.USERS.BASE,
-            withAuth: true,
-          });
-
-          if (userInfo.user.role === "ADMIN") {
-            return Promise.resolve();
-          } else {
-            throw new Error("권한 없음");
-          }
-        } catch (refreshError) {
-          console.error("Token refresh failed:", refreshError);
+    // 명시적으로 로그인 완료되었고, 토큰과 인증 정보가 모두 있는 경우만 통과
+    if (isLoggedIn === "true" && token && adminAuth) {
+      try {
+        const authData = JSON.parse(adminAuth);
+        if (authData.user?.role === "ADMIN") {
+          return Promise.resolve();
         }
+      } catch {
+        // 파싱 오류시 재로그인 필요
+        localStorage.removeItem("admin_logged_in");
       }
-
-      // 리프레시 실패 시 로그아웃
-      removeAdminToken();
-      localStorage.removeItem("adminAuth");
-      return Promise.reject();
     }
+
+    // 그 외 모든 경우 로그인 페이지로
+    return Promise.reject();
   },
 
-  // 오류 처리 (401, 403 등)
-  checkError: async (error) => {
+  // 오류 처리
+  checkError: (error) => {
     const status = error.status;
 
-    if (status === 401) {
-      // 인증 실패 - 토큰 갱신 시도
-      const authData = localStorage.getItem("adminAuth");
-      if (authData) {
-        try {
-          const { refreshToken } = JSON.parse(authData);
-          await refreshAuthToken(refreshToken);
-
-          // 갱신 성공 시 계속 진행
-          return Promise.resolve();
-        } catch (refreshError) {
-          console.error("Token refresh in checkError failed:", refreshError);
-          // 갱신 실패 시에만 토큰 삭제
-          removeAdminToken();
-          localStorage.removeItem("adminAuth");
-          return Promise.reject();
-        }
-      } else {
-        // 인증 데이터가 없으면 토큰 삭제
-        removeAdminToken();
-        localStorage.removeItem("adminAuth");
-        return Promise.reject();
-      }
-    }
-
-    if (status === 403) {
-      return Promise.reject(); // 권한 부족
-    }
-
-    if (status >= 500) {
-      return Promise.reject(); // 서버 오류
+    if (status === 401 || status === 403) {
+      return Promise.reject();
     }
 
     return Promise.resolve();
@@ -217,69 +147,26 @@ export const authProvider: AuthProvider = {
     return Promise.resolve([]);
   },
 
-  // 사용자 정보 가져오기
-  getIdentity: async () => {
-    try {
-      // 서버에서 최신 프로필 정보 가져오기
-      const profile = await apiCall<void, AdminProfile>({
-        method: "GET",
-        path: API_PATHS.USERS.BASE,
-        withAuth: true,
-      });
-
-      return Promise.resolve({
-        id: profile.id,
-        fullName: profile.fullName || profile.username,
-        avatar: undefined,
-      });
-    } catch (error) {
-      console.error("Failed to get identity:", error);
-
-      // 서버 요청 실패 시 로컬 저장소에서 정보 가져오기
-      const authData = localStorage.getItem("adminAuth");
-      if (authData) {
-        try {
-          const { user } = JSON.parse(authData);
-          return Promise.resolve({
-            id: user.id,
-            fullName: user.username,
-            avatar: undefined,
-          });
-        } catch (parseError) {
-          console.error("Failed to parse auth data:", parseError);
-        }
-      }
-
-      return Promise.reject(new Error("사용자 정보를 가져올 수 없습니다."));
-    }
-  },
-};
-
-// 토큰 리프레시 함수
-async function refreshAuthToken(refreshToken: string): Promise<void> {
-  try {
-    const response = await apiCall<
-      { refreshToken: string },
-      { accessToken: string; refreshToken: string }
-    >({
-      method: "POST",
-      path: API_PATHS.AUTH.REISSUE,
-      data: { refreshToken },
-      withAuth: false,
-    });
-
-    // 새 토큰들 저장
-    setAdminToken(response.accessToken);
-
-    // 어드민 인증 정보의 리프레시 토큰 업데이트
+  // 사용자 정보 가져오기 - localStorage만 사용
+  getIdentity: () => {
     const authData = localStorage.getItem("adminAuth");
     if (authData) {
-      const parsed = JSON.parse(authData);
-      parsed.refreshToken = response.refreshToken;
-      localStorage.setItem("adminAuth", JSON.stringify(parsed));
+      try {
+        const { user } = JSON.parse(authData);
+        return Promise.resolve({
+          id: user.id,
+          fullName: user.nickname || "관리자",
+          avatar: undefined,
+        });
+      } catch {
+        // JSON 파싱 오류 시 기본값 반환
+      }
     }
-  } catch (error) {
-    console.error("Token refresh failed:", error);
-    throw error;
-  }
-}
+
+    return Promise.resolve({
+      id: "admin",
+      fullName: "관리자",
+      avatar: undefined,
+    });
+  },
+};

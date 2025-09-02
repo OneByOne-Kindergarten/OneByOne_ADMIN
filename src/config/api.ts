@@ -1,17 +1,20 @@
 export const API_PATHS = {
-  // 사용자 관리
   USERS: {
     BASE: "/users",
-    DETAIL: (id: number) => `/users/${id}`,
     SIGN_IN: "/users/sign-in",
-    SIGN_UP: "/users/sign-up",
-    ROLE: "/users/role",
-    NICKNAME: "/users/nickname",
-    PASSWORD: "/users/password",
     WITHDRAW: "/users/withdraw",
     BLOCK_LIST: "/blocks/list",
     BLOCK_USER: "/blocks",
     UNBLOCK_USER: (email: string) => `/blocks/${email}`,
+  },
+
+  // 사용자 관리
+  ADMIN: {
+    USERS: {
+      LIST: "/admin/users",
+      DETAIL: (userId: number) => `/admin/users/${userId}`,
+      SEARCH: "/admin/users/search",
+    },
   },
 
   // 유치원 관리

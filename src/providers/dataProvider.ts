@@ -40,7 +40,7 @@ const normalizeId = (item: any, resource: string): any => {
 // 리소스별 API 경로 매핑
 const getResourcePath = (resource: string, params?: any): string => {
   const pathMap: Record<string, string> = {
-    users: API_PATHS.USERS.BASE, // 현재는 단일 사용자 정보만 반환
+    users: API_PATHS.ADMIN.USERS.LIST, // 관리자 API로 전체 사용자 목록 조회
     kindergartens: API_PATHS.KINDERGARTEN.BASE,
     inquiries: API_PATHS.INQUIRY.ALL,
     community: API_PATHS.COMMUNITY.BASE,
@@ -53,6 +53,11 @@ const getResourcePath = (resource: string, params?: any): string => {
   // 문의 상태별 조회
   if (resource === "inquiries" && params?.status) {
     return API_PATHS.INQUIRY.STATUS(params.status);
+  }
+
+  // 사용자 검색 - 검색 조건이 있으면 검색 API 사용
+  if (resource === "users" && params && Object.keys(params).length > 0) {
+    return API_PATHS.ADMIN.USERS.SEARCH;
   }
 
   // 필수 파라미터가 있는 경우 처리
@@ -152,7 +157,7 @@ export const dataProvider = {
     const basePath = getResourcePath(resource);
     const path =
       resource === "users"
-        ? API_PATHS.USERS.DETAIL(parseInt(params.id))
+        ? API_PATHS.ADMIN.USERS.DETAIL(parseInt(params.id))
         : resource === "inquiries"
         ? API_PATHS.INQUIRY.DETAIL(parseInt(params.id))
         : resource === "community"

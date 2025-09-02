@@ -1,6 +1,5 @@
-import { useGetList } from "react-admin";
 import { Card, CardContent, CardHeader } from "@mui/material";
-import { Box, Typography, Paper } from "@mui/material";
+import { Box, Typography, Paper, CircularProgress } from "@mui/material";
 
 // 통계 카드 컴포넌트
 const StatCard = ({
@@ -11,37 +10,55 @@ const StatCard = ({
   title: string;
   value: number;
   color?: string;
-}) => (
-  <Paper
-    elevation={3}
-    sx={{
-      p: 3,
-      borderLeft: `4px solid ${color}`,
-      background: "linear-gradient(45deg, #f5f5f5 30%, #ffffff 90%)",
-    }}
-  >
-    <Typography variant="h6" color="textSecondary" gutterBottom>
-      {title}
-    </Typography>
-    <Typography variant="h3" component="div" sx={{ color }}>
-      {value.toLocaleString()}
-    </Typography>
-  </Paper>
-);
+}) => {
+  const getDisplayValue = () => {
+    if (value === -1) {
+      return <CircularProgress size={32} sx={{ color }} />;
+    }
+    if (value === -2) {
+      return (
+        <Typography variant="h6" sx={{ color: "#f44336" }}>
+          오류
+        </Typography>
+      );
+    }
+    return (
+      <Typography variant="h3" component="div" sx={{ color }}>
+        {value.toLocaleString()}
+      </Typography>
+    );
+  };
+
+  return (
+    <Paper
+      elevation={3}
+      sx={{
+        p: 3,
+        borderLeft: `4px solid ${color}`,
+        background: "linear-gradient(45deg, #f5f5f5 30%, #ffffff 90%)",
+        minHeight: 120,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+      }}
+    >
+      <Typography variant="h6" color="textSecondary" gutterBottom>
+        {title}
+      </Typography>
+      {getDisplayValue()}
+    </Paper>
+  );
+};
 
 export const Dashboard = () => {
-  // 현재 사용 가능한 리소스별 총 개수 가져오기
-  const { total: inquiriesTotal } = useGetList("inquiries", {
-    pagination: { page: 1, perPage: 1 },
-    sort: { field: "inquiryId", order: "DESC" },
-    filter: {},
-  });
-
-  const { total: communityTotal } = useGetList("community", {
-    pagination: { page: 1, perPage: 1 },
-    sort: { field: "communityId", order: "DESC" },
-    filter: {},
-  });
+  // 무한 루프를 방지하기 위해 일시적으로 API 호출 비활성화
+  // TODO: 추후 안정적인 방법으로 통계 데이터 로드
+  const inquiriesTotal = 0;
+  const communityTotal = 0;
+  const inquiriesLoading = false;
+  const communityLoading = false;
+  const inquiriesError = null;
+  const communityError = null;
 
   return (
     <Box sx={{ p: 3 }}>
@@ -59,12 +76,16 @@ export const Dashboard = () => {
       >
         <StatCard
           title="미처리 문의"
-          value={inquiriesTotal || 0}
+          value={
+            inquiriesLoading ? -1 : inquiriesError ? -2 : inquiriesTotal || 0
+          }
           color="#ff9800"
         />
         <StatCard
           title="커뮤니티 글"
-          value={communityTotal || 0}
+          value={
+            communityLoading ? -1 : communityError ? -2 : communityTotal || 0
+          }
           color="#9c27b0"
         />
       </Box>
