@@ -1,6 +1,5 @@
-// OneByOne API 스웨거 문서 기반 실제 API 경로
 export const API_PATHS = {
-  // 사용자 관리 (실제 API 기반)
+  // 사용자 관리
   USERS: {
     BASE: "/users",
     DETAIL: (id: number) => `/users/${id}`,
@@ -15,7 +14,7 @@ export const API_PATHS = {
     UNBLOCK_USER: (email: string) => `/blocks/${email}`,
   },
 
-  // 유치원 관리 (실제 API 기반)
+  // 유치원 관리
   KINDERGARTEN: {
     BASE: "/kindergarten",
     DETAIL: (id: number) => `/kindergarten/${id}`,
@@ -23,7 +22,7 @@ export const API_PATHS = {
     NEARBY: "/kindergarten/nearby",
   },
 
-  // 문의 관리 (실제 API 기반)
+  // 문의 관리
   INQUIRY: {
     BASE: "/inquiry",
     ALL: "/inquiry/all",
@@ -34,7 +33,7 @@ export const API_PATHS = {
     ANSWER: (id: number) => `/inquiry/${id}/answer`,
   },
 
-  // 커뮤니티 관리 (실제 API 기반)
+  // 커뮤니티 관리
   COMMUNITY: {
     BASE: "/community",
     DETAIL: (id: number) => `/community/${id}`,
@@ -48,7 +47,7 @@ export const API_PATHS = {
     },
   },
 
-  // 리뷰 관리 (실제 API 기반)
+  // 리뷰 관리
   REVIEWS: {
     WORK: {
       BASE: "/work/review",
@@ -62,26 +61,26 @@ export const API_PATHS = {
     },
   },
 
-  // 공지사항 관리 (실제 API 기반)
+  // 공지사항 관리
   NOTICE: {
     BASE: "/notice",
     ADMIN: "/admin/notice",
     STATUS: (noticeId: number) => `/admin/notice/${noticeId}/status`,
   },
 
-  // 신고 관리 (실제 API 기반)
+  // 신고 관리
   REPORT: {
     BASE: "/report",
     MY: "/report/my",
   },
 
-  // 즐겨찾기 관리 (실제 API 기반)
+  // 즐겨찾기 관리
   FAVORITE: {
     BASE: "/favorite-kindergartens",
     STATUS: "/favorite-kindergartens/status",
   },
 
-  // 알림 관리 (실제 API 기반)
+  // 알림 관리
   NOTIFICATION: {
     MY: "/notification/my",
     UNREAD_COUNT: "/notification/my/unread/count",
@@ -90,14 +89,7 @@ export const API_PATHS = {
     SETTINGS: "/users/notification-settings",
   },
 
-  // OAuth 콜백 (실제 API 기반)
-  OAUTH: {
-    KAKAO_CALLBACK: "/users/kakao/callback",
-    NAVER_CALLBACK: "/users/naver/callback",
-    APPLE_CALLBACK: "/users/apple/callback",
-  },
-
-  // 토큰 관리 (실제 API 기반)
+  // 토큰 관리
   AUTH: {
     REISSUE: "/users/reissue",
     FIND_PASSWORD: "/users/email-certification",

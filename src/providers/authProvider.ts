@@ -3,13 +3,11 @@ import { apiCall } from "@/utils/api";
 import { API_PATHS } from "@/config/api";
 import { setAdminToken, removeAdminToken, getAdminToken } from "@/utils/api";
 
-// OneByOne API 로그인 응답 타입
 interface ApiLoginResponse {
   accessToken: string;
   refreshToken: string;
 }
 
-// 사용자 프로필 타입
 interface AdminProfile {
   id: number;
   username: string;
@@ -36,7 +34,6 @@ export const authProvider: AuthProvider = {
         withCredentials: true,
       });
 
-      // 토큰 저장
       setAdminToken(response.accessToken);
 
       // 사용자 정보 조회하여 어드민 권한 확인
@@ -95,7 +92,6 @@ export const authProvider: AuthProvider = {
     } catch (error) {
       console.warn("Logout request failed:", error);
     } finally {
-      // 로컬 스토리지 정리
       removeAdminToken();
       localStorage.removeItem("adminAuth");
     }
@@ -103,7 +99,7 @@ export const authProvider: AuthProvider = {
     return Promise.resolve();
   },
 
-  // 인증 상태 확인 (실제 OneByOne API 사용)
+  // 인증 상태 확인
   checkAuth: async () => {
     const token = getAdminToken();
 
@@ -113,7 +109,7 @@ export const authProvider: AuthProvider = {
     }
 
     try {
-      // 실제 OneByOne API로 사용자 정보 확인
+      // 사용자 정보 확인
       const userInfo = await apiCall<
         void,
         { user: { role: string; nickname: string; userId: number } }
@@ -195,13 +191,11 @@ export const authProvider: AuthProvider = {
     }
 
     if (status === 403) {
-      // 권한 부족
-      return Promise.reject();
+      return Promise.reject(); // 권한 부족
     }
 
     if (status >= 500) {
-      // 서버 오류
-      return Promise.reject();
+      return Promise.reject(); // 서버 오류
     }
 
     return Promise.resolve();
@@ -236,7 +230,7 @@ export const authProvider: AuthProvider = {
       return Promise.resolve({
         id: profile.id,
         fullName: profile.fullName || profile.username,
-        avatar: undefined, // 아바타 이미지가 있다면 추가
+        avatar: undefined,
       });
     } catch (error) {
       console.error("Failed to get identity:", error);

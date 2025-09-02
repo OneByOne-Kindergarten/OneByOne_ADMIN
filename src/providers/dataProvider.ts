@@ -55,7 +55,7 @@ const getResourcePath = (resource: string, params?: any): string => {
     return API_PATHS.INQUIRY.STATUS(params.status);
   }
 
-  // 리뷰는 kindergartenId가 필수이므로 특별 처리
+  // 필수 파라미터가 있는 경우 처리
   if (resource === "work_reviews" && params?.kindergartenId) {
     return API_PATHS.REVIEWS.WORK.LIST(params.kindergartenId);
   }
@@ -91,7 +91,7 @@ export const dataProvider = {
     const { page, perPage } = params.pagination || { page: 1, perPage: 10 };
     const { field, order } = params.sort || { field: "id", order: "ASC" };
 
-    // 리뷰 리소스인 경우 kindergartenId가 필수
+    // 리뷰 리소스인 경우 kindergartenId 필수
     if (
       (resource === "work_reviews" || resource === "internship_reviews") &&
       !params.filter?.kindergartenId
@@ -139,7 +139,7 @@ export const dataProvider = {
     } catch (error) {
       console.error(`Failed to fetch ${resource}:`, error);
 
-      // 401 오류인 경우 더 구체적인 메시지
+      // 401 오류
       if ((error as any)?.status === 401) {
         throw new Error(`인증이 만료되었습니다. 다시 로그인해주세요.`);
       }
