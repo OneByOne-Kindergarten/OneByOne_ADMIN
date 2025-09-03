@@ -1,6 +1,5 @@
 import { API_CONFIG } from "@/config/api";
 
-// HTTP 클라이언트 유틸리티
 interface ApiCallOptions<T> {
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   path: string;
@@ -24,7 +23,7 @@ class ApiError extends Error {
   }
 }
 
-// 토큰 관리
+// 토큰 관리 함수
 export const getAdminToken = (): string | null => {
   return (
     localStorage.getItem("admin_token") ||
@@ -79,19 +78,29 @@ export async function apiCall<TRequest, TResponse>({
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      let errorData: unknown;
+      let errorData: any;
+      let errorMessage = `${response.status} ${response.statusText}`;
 
       try {
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
           errorData = await response.json();
-          console.log("API Error (JSON):", errorData);
+
+          // 서버 에러 메시지 추출
+          if (errorData?.message) {
+            errorMessage = errorData.message;
+          }
+        } else {
+          const errorText = await response.text();
+          if (errorText) {
+            errorMessage = errorText;
+          }
         }
       } catch (e) {
         console.log("Failed to parse error response:", e);
       }
 
-      throw new ApiError(response.status, response.statusText, errorData);
+      throw new ApiError(response.status, errorMessage, errorData);
     }
 
     // 204 No Content 처리
