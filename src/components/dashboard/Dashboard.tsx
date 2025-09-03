@@ -63,7 +63,7 @@ export const Dashboard = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Title title="대시보드" />
+      <Title title="원바원" />
       <Typography variant="h4" component="h1" gutterBottom>
         원바원 서비스 운영 현황
       </Typography>

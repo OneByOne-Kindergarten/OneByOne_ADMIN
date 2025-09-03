@@ -199,7 +199,7 @@ export const dataProvider: DataProvider = {
   },
 
   getOne: async (resource: any, params: any) => {
-    const basePath = getResourcePath(resource);
+    // 리뷰 리소스는 개별 조회 API가 없으므로 기본 경로 사용
     const path =
       resource === "users"
         ? API_PATHS.ADMIN.USERS.DETAIL(parseInt(params.id))
@@ -207,7 +207,13 @@ export const dataProvider: DataProvider = {
         ? API_PATHS.INQUIRY.DETAIL(parseInt(params.id))
         : resource === "community"
         ? API_PATHS.COMMUNITY.DETAIL(parseInt(params.id))
-        : `${basePath}/${params.id}`;
+        : resource === "kindergartens"
+        ? API_PATHS.KINDERGARTEN.DETAIL(parseInt(params.id))
+        : resource === "work-reviews"
+        ? `${API_PATHS.REVIEWS.WORK.BASE}/${params.id}`
+        : resource === "internship-reviews"
+        ? `${API_PATHS.REVIEWS.INTERNSHIP.BASE}/${params.id}`
+        : `/${resource}/${params.id}`;
 
     try {
       const response = await apiCallWithRetry<void, unknown>({
