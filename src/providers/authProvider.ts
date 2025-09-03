@@ -25,13 +25,13 @@ export const authProvider: AuthProvider = {
       localStorage.setItem("admin_token", response.accessToken);
       localStorage.setItem("admin_logged_in", "true");
 
-      // 간단한 사용자 정보 저장 (API 호출 없이)
+      // 간단한 사용자 정보 저장
       localStorage.setItem(
         "admin_user",
         JSON.stringify({
           id: 1,
           email: username,
-          nickname: "관리자",
+          nickname: "운영자",
           role: "ADMIN",
         })
       );
@@ -94,7 +94,7 @@ export const authProvider: AuthProvider = {
 
     return Promise.resolve({
       id: "admin",
-      fullName: "관리자",
+      fullName: "운영자",
       avatar: undefined,
     });
   },

@@ -56,7 +56,7 @@ const getResourcePath = (resource: string, params?: any): string => {
     return API_PATHS.INQUIRY.STATUS(params.status);
   }
 
-  // 사용자 검색 - 검색 조건이 있으면 검색 API 사용
+  // 사용자 검색 - 검색 API 사용
   if (
     resource === "users" &&
     params &&
@@ -69,12 +69,12 @@ const getResourcePath = (resource: string, params?: any): string => {
     return API_PATHS.ADMIN.USERS.SEARCH;
   }
 
-  // 리뷰 리소스는 항상 kindergartenId가 필요하므로 특별 처리
+  // 리뷰 관리는 항상 kindergartenId가 필요하므로 특별 처리
   if (resource === "work-reviews") {
     if (params?.filter?.kindergartenId) {
       return API_PATHS.REVIEWS.WORK.LIST(params.filter.kindergartenId);
     } else {
-      // kindergartenId가 없으면 더미 경로 반환 (실제 호출되지 않음)
+      // kindergartenId가 없으면 더미 경로 반환
       return "/work/reviews/0";
     }
   }
@@ -82,7 +82,6 @@ const getResourcePath = (resource: string, params?: any): string => {
     if (params?.filter?.kindergartenId) {
       return API_PATHS.REVIEWS.INTERNSHIP.LIST(params.filter.kindergartenId);
     } else {
-      // kindergartenId가 없으면 더미 경로 반환 (실제 호출되지 않음)
       return "/internship/reviews/0";
     }
   }
@@ -126,6 +125,7 @@ export const dataProvider: DataProvider = {
         kindergartenId !== "" &&
         kindergartenId !== null &&
         kindergartenId !== undefined &&
+        String(kindergartenId).trim() !== "" &&
         !isNaN(Number(kindergartenId)) &&
         Number(kindergartenId) > 0;
 
@@ -158,7 +158,7 @@ export const dataProvider: DataProvider = {
       };
     }
 
-    const path = getResourcePath(resource, params.filter);
+    const path = getResourcePath(resource, params);
     const queryString = new URLSearchParams(queryParams).toString();
     const fullPath = `${path}?${queryString}`;
 
