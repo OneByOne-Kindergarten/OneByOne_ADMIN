@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader } from "@mui/material";
 import { Box, Typography, Paper, CircularProgress } from "@mui/material";
+import { Title } from "react-admin";
 
 // 통계 카드 컴포넌트
 const StatCard = ({
@@ -62,8 +63,9 @@ export const Dashboard = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <Title title="대시보드" />
       <Typography variant="h4" component="h1" gutterBottom>
-        OneByOne 관리자 대시보드
+        원바원 서비스 운영 현황
       </Typography>
 
       <Box

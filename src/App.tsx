@@ -1,85 +1,49 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "./contexts/AuthContext";
-import { useAuth } from "./hooks/useAuth";
-import { LoginPage } from "./components/auth/LoginPage";
+import { Admin, Resource } from "react-admin";
 import { Dashboard } from "./components/dashboard/Dashboard";
-import { Layout } from "./components/layout/Layout";
 import { UserList } from "./components/users/UserList";
-import { InquiryList } from "./components/inquiries/SimpleInquiryList";
-import { CommunityList } from "./components/community/SimpleCommunityList";
-import { KindergartenList } from "./components/kindergartens/SimpleKindergartenList";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <div>로딩 중...</div>;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
-};
-
-const AppRoutes = () => {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <div>로딩 중...</div>;
-  }
-
-  return (
-    <Routes>
-      <Route
-        path="/login"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />}
-      />
-      <Route
-        path="/*"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/users" element={<UserList />} />
-                <Route path="/inquiries" element={<InquiryList />} />
-                <Route path="/community" element={<CommunityList />} />
-                <Route path="/kindergartens" element={<KindergartenList />} />
-              </Routes>
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
-  );
-};
+import { InquiryList } from "./components/inquiries/InquiryList";
+import { CommunityList } from "./components/community/CommunityList";
+import { KindergartenList } from "./components/kindergartens/KindergartenList";
+import { WorkReviewList } from "./components/reviews/WorkReviewList";
+import { InternshipReviewList } from "./components/reviews/InternshipReviewList";
+import { dataProvider } from "./providers/dataProvider";
+import { authProvider } from "./providers/authProvider";
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </AuthProvider>
-    </QueryClientProvider>
+    <Admin
+      dataProvider={dataProvider}
+      authProvider={authProvider}
+      dashboard={Dashboard}
+      title="원바원 관리자"
+    >
+      <Resource name="users" list={UserList} options={{ label: "유저 관리" }} />
+      <Resource
+        name="kindergartens"
+        list={KindergartenList}
+        options={{ label: "유치원 관리" }}
+      />
+      <Resource
+        name="inquiries"
+        list={InquiryList}
+        options={{ label: "문의 관리" }}
+      />
+      <Resource
+        name="work-reviews"
+        list={WorkReviewList}
+        options={{ label: "근무 리뷰 관리" }}
+      />
+      <Resource
+        name="internship-reviews"
+        list={InternshipReviewList}
+        options={{ label: "실습 리뷰 관리" }}
+      />
+      <Resource
+        name="community"
+        list={CommunityList}
+        options={{ label: "커뮤니티 관리" }}
+      />
+    </Admin>
   );
 }
 

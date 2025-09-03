@@ -1,6 +1,7 @@
 import { apiCallWithRetry } from "@/utils/api";
 import { API_PATHS } from "@/config/api";
 import type { PaginatedResponse } from "@/config/api";
+import type { DataProvider } from "react-admin";
 
 // 리소스별 ID 필드 매핑
 const ID_FIELD_MAP: Record<string, string> = {
@@ -56,15 +57,23 @@ const getResourcePath = (resource: string, params?: any): string => {
   }
 
   // 사용자 검색 - 검색 조건이 있으면 검색 API 사용
-  if (resource === "users" && params && Object.keys(params).length > 0) {
+  if (
+    resource === "users" &&
+    params &&
+    (params.email ||
+      params.nickname ||
+      params.role ||
+      params.provider ||
+      params.status)
+  ) {
     return API_PATHS.ADMIN.USERS.SEARCH;
   }
 
   // 필수 파라미터가 있는 경우 처리
-  if (resource === "work_reviews" && params?.kindergartenId) {
+  if (resource === "work-reviews" && params?.kindergartenId) {
     return API_PATHS.REVIEWS.WORK.LIST(params.kindergartenId);
   }
-  if (resource === "internship_reviews" && params?.kindergartenId) {
+  if (resource === "internship-reviews" && params?.kindergartenId) {
     return API_PATHS.REVIEWS.INTERNSHIP.LIST(params.kindergartenId);
   }
 
@@ -91,19 +100,21 @@ const formatFilterParams = (
   return params;
 };
 
-export const dataProvider = {
+export const dataProvider: DataProvider = {
   getList: async (resource: any, params: any) => {
     const { page, perPage } = params.pagination || { page: 1, perPage: 10 };
     const { field, order } = params.sort || { field: "id", order: "ASC" };
 
-    // 리뷰 리소스인 경우 kindergartenId 필수
+    // 리뷰 리소스인 경우 kindergartenId 필수 - 빈 결과 반환으로 API 호출 방지
     if (
-      (resource === "work_reviews" || resource === "internship_reviews") &&
+      (resource === "work-reviews" || resource === "internship-reviews") &&
       !params.filter?.kindergartenId
     ) {
-      throw new Error(
-        "유치원 ID를 입력해주세요. 리뷰 조회를 위해서는 유치원 ID가 필요합니다."
-      );
+      // 에러 대신 빈 결과 반환하여 API 호출을 완전히 방지하면서도 필터는 표시
+      return Promise.resolve({
+        data: [],
+        total: 0,
+      });
     }
 
     const queryParams = {
@@ -232,9 +243,21 @@ export const dataProvider = {
         }
       );
 
+      // API 응답이 래핑된 형태인지 확인
+      const responseData = (response as any).data || response;
+
+      // 각 레코드에 id 필드 매핑
+      const normalizedData = (responseData.content || responseData || []).map(
+        (item: any) => normalizeId(item, resource)
+      );
+
       return {
-        data: response.content || [],
-        total: response.totalElements || 0,
+        data: normalizedData,
+        total:
+          responseData.totalElements ||
+          response.totalElements ||
+          normalizedData.length ||
+          0,
       };
     } catch (error) {
       console.error(`Failed to fetch ${resource} reference:`, error);
@@ -252,7 +275,8 @@ export const dataProvider = {
         data: params.data,
       });
 
-      return { data: { ...(params.data as any), ...(response as any) } };
+      const data = { ...(params.data as any), ...(response as any) };
+      return { data: normalizeId(data, resource) };
     } catch (error) {
       console.error(`Failed to create ${resource}:`, error);
       throw new Error(`${resource} 생성에 실패했습니다.`);
@@ -270,7 +294,8 @@ export const dataProvider = {
         data: params.data,
       });
 
-      return { data: { ...(params.data as any), ...(response as any) } };
+      const data = { ...(params.data as any), ...(response as any) };
+      return { data: normalizeId(data, resource) };
     } catch (error) {
       console.error(`Failed to update ${resource} ${params.id}:`, error);
       throw new Error(`${resource} 수정에 실패했습니다.`);
@@ -310,7 +335,8 @@ export const dataProvider = {
         path,
       });
 
-      return { data: response || { id: params.id } };
+      const data = (response as any) || { id: params.id };
+      return { data: normalizeId(data, resource) };
     } catch (error) {
       console.error(`Failed to delete ${resource} ${params.id}:`, error);
       throw new Error(`${resource} 삭제에 실패했습니다.`);
