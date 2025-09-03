@@ -27,18 +27,18 @@ class ApiError extends Error {
 // 토큰 관리
 export const getAdminToken = (): string | null => {
   return (
-    localStorage.getItem("adminToken") ||
+    localStorage.getItem("admin_token") ||
     import.meta.env.VITE_ADMIN_TOKEN ||
     null
   );
 };
 
 export const setAdminToken = (token: string): void => {
-  localStorage.setItem("adminToken", token);
+  localStorage.setItem("admin_token", token);
 };
 
 export const removeAdminToken = (): void => {
-  localStorage.removeItem("adminToken");
+  localStorage.removeItem("admin_token");
 };
 
 export const getAuthHeaders = (): HeadersInit => {
@@ -80,13 +80,15 @@ export async function apiCall<TRequest, TResponse>({
 
     if (!response.ok) {
       let errorData: unknown;
+
       try {
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
           errorData = await response.json();
+          console.log("API Error (JSON):", errorData);
         }
-      } catch {
-        // JSON 파싱 실패 시 무시
+      } catch (e) {
+        console.log("Failed to parse error response:", e);
       }
 
       throw new ApiError(response.status, response.statusText, errorData);

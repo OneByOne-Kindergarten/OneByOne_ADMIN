@@ -1,5 +1,10 @@
 import { useState, useEffect, type ReactNode } from "react";
-import { apiCall } from "@/utils/api";
+import {
+  apiCall,
+  setAdminToken,
+  removeAdminToken,
+  getAdminToken,
+} from "@/utils/api";
 import { API_PATHS } from "@/config/api";
 import { AuthContext, type User } from "./AuthContextDefinition";
 
@@ -10,7 +15,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // 페이지 로드 시 저장된 인증 정보 확인
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem("admin_token");
+      const token = getAdminToken();
       const savedUser = localStorage.getItem("admin_user");
 
       if (token && savedUser) {
@@ -34,7 +39,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      // 로그인 API 호출
       const response = await apiCall<
         { email: string; password: string; fcmToken: string },
         { accessToken: string; refreshToken: string }
@@ -49,36 +53,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         withAuth: false,
       });
 
-      localStorage.setItem("admin_token", response.accessToken);
+      setAdminToken(response.accessToken);
 
       // 사용자 정보 조회
-      const userInfo = await apiCall<
-        void,
-        { user: { role: string; nickname: string; userId: number } }
-      >({
+      const userInfo = await apiCall<void, any>({
         method: "GET",
         path: API_PATHS.USERS.BASE,
         withAuth: true,
       });
 
+      // API 응답 구조 확인 및 사용자 정보 추출
+      const user = userInfo.user || userInfo.data?.user || userInfo;
+
+      if (!user || !user.role) {
+        removeAdminToken();
+        throw new Error("사용자 정보를 가져올 수 없습니다.");
+      }
+
       // 관리자 권한 확인
-      if (userInfo.user.role !== "ADMIN") {
-        localStorage.removeItem("admin_token");
+      if (user.role !== "ADMIN") {
+        removeAdminToken();
         throw new Error("관리자 권한이 필요합니다.");
       }
 
       const userData: User = {
-        id: userInfo.user.userId,
+        id: user.userId || user.id,
         email,
-        nickname: userInfo.user.nickname,
-        role: userInfo.user.role,
+        nickname: user.nickname,
+        role: user.role,
       };
 
       setUser(userData);
       localStorage.setItem("admin_user", JSON.stringify(userData));
       localStorage.setItem("admin_logged_in", "true");
     } catch (error) {
-      localStorage.removeItem("admin_token");
+      removeAdminToken();
       localStorage.removeItem("admin_user");
       localStorage.removeItem("admin_logged_in");
       throw error;
@@ -87,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("admin_token");
+    removeAdminToken();
     localStorage.removeItem("admin_user");
     localStorage.removeItem("admin_logged_in");
   };

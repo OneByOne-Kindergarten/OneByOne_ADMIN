@@ -1,129 +1,304 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
-  List,
-  Datagrid,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  Box,
   TextField,
-  DateField,
-  BooleanField,
-  EditButton,
-  ShowButton,
-  SelectField,
-  TopToolbar,
-  CreateButton,
-  ExportButton,
-  FilterButton,
-  TextInput,
-  SearchInput,
-  SelectInput,
-} from "react-admin";
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Button,
+  Chip,
+  Pagination,
+} from "@mui/material";
+import { apiCall } from "@/utils/api";
+import { API_PATHS } from "@/config/api";
 
-const UserFilters = [
-  <SearchInput source="email" alwaysOn placeholder="이메일" />,
-  <SearchInput source="nickname" alwaysOn placeholder="닉네임" />,
-  <SelectInput
-    label="역할"
-    source="role"
-    choices={[
-      { id: "TEACHER", name: "교사" },
-      { id: "PROSPECTIVE_TEACHER", name: "예비교사" },
-      { id: "GENERAL", name: "일반사용자" },
-      { id: "ADMIN", name: "관리자" },
-    ]}
-    emptyText="전체"
-    alwaysOn
-    sx={{
-      "& .MuiInputBase-root": {
-        height: "42px",
-        fontSize: "14px",
-      },
-    }}
-  />,
-  <SelectInput
-    label="가입 방식"
-    source="provider"
-    choices={[
-      { id: "LOCAL", name: "로컬" },
-      { id: "GOOGLE", name: "구글" },
-      { id: "KAKAO", name: "카카오" },
-    ]}
-    emptyText="전체"
-    sx={{
-      "& .MuiInputBase-root": {
-        height: "42px",
-        fontSize: "14px",
-      },
-    }}
-  />,
-  <SelectInput
-    label="상태"
-    source="status"
-    choices={[
-      { id: "ACTIVE", name: "활성" },
-      { id: "INACTIVE", name: "비활성" },
-      { id: "SUSPENDED", name: "정지" },
-    ]}
-    emptyText="전체"
-    sx={{
-      "& .MuiInputBase-root": {
-        height: "42px",
-        fontSize: "14px",
-      },
-    }}
-  />,
-  <TextInput label="유치원명" source="kindergartenName" />,
-];
+interface User {
+  userId: number;
+  email: string;
+  nickname: string;
+  role: string;
+  provider: string;
+  status: string;
+  kindergartenName?: string;
+  hasWrittenReview: boolean;
+  isRestoredUser: boolean;
+  createdAt: string;
+}
 
-const UserActions = () => (
-  <TopToolbar>
-    <FilterButton />
-    <CreateButton />
-    <ExportButton />
-  </TopToolbar>
-);
+const roleLabels: Record<string, string> = {
+  TEACHER: "교사",
+  PROSPECTIVE_TEACHER: "예비교사",
+  GENERAL: "일반사용자",
+  ADMIN: "관리자",
+};
 
-const roleChoices = [
-  { id: "TEACHER", name: "교사" },
-  { id: "PROSPECTIVE_TEACHER", name: "예비교사" },
-  { id: "GENERAL", name: "일반사용자" },
-  { id: "ADMIN", name: "관리자" },
-];
+const providerLabels: Record<string, string> = {
+  LOCAL: "로컬",
+  GOOGLE: "구글",
+  KAKAO: "카카오",
+};
 
-const providerChoices = [
-  { id: "LOCAL", name: "로컬" },
-  { id: "NAVER", name: "네이버" },
-  { id: "KAKAO", name: "카카오" },
-  { id: "APPLE", name: "애플" },
-];
+const statusLabels: Record<string, string> = {
+  ACTIVE: "활성",
+  INACTIVE: "비활성",
+  SUSPENDED: "정지",
+};
 
-const statusChoices = [
-  { id: "ACTIVE", name: "활성" },
-  { id: "INACTIVE", name: "비활성" },
-  { id: "SUSPENDED", name: "정지" },
-];
+export const UserList = () => {
+  const [filters, setFilters] = useState({
+    email: "",
+    nickname: "",
+    role: "",
+    provider: "",
+    status: "",
+    kindergartenName: "",
+  });
+  const [page, setPage] = useState(1);
+  const [appliedFilters, setAppliedFilters] = useState(filters);
 
-export const UserList = () => (
-  <List
-    filters={UserFilters}
-    actions={<UserActions />}
-    title="사용자 관리"
-    perPage={25}
-    sort={{ field: "createdAt", order: "DESC" }}
-  >
-    <Datagrid rowClick="show">
-      <TextField source="id" label="ID" />
-      <TextField source="nickname" label="닉네임" />
-      <TextField source="email" label="이메일" />
-      <SelectField source="role" choices={roleChoices} label="역할" />
-      <SelectField
-        source="provider"
-        choices={providerChoices}
-        label="가입 방식"
-      />
-      <TextField source="career" label="교사 인증" />
-      <BooleanField source="hasWrittenReview" label="리뷰 작성" />
-      <SelectField source="status" choices={statusChoices} label="상태" />
-      <DateField source="createdAt" label="가입일" showTime />
-      <ShowButton />
-      <EditButton />
-    </Datagrid>
-  </List>
-);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["users", appliedFilters, page],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.append("page", (page - 1).toString());
+      params.append("size", "20");
+
+      // 필터 추가
+      Object.entries(appliedFilters).forEach(([key, value]) => {
+        if (value) {
+          params.append(key, value);
+        }
+      });
+
+      const hasFilters = Object.values(appliedFilters).some((v) => v);
+      const endpoint = hasFilters
+        ? API_PATHS.ADMIN.USERS.SEARCH
+        : API_PATHS.ADMIN.USERS.LIST;
+
+      return await apiCall<
+        void,
+        { content: User[]; totalElements: number; totalPages: number }
+      >({
+        method: "GET",
+        path: `${endpoint}?${params.toString()}`,
+        withAuth: true,
+      });
+    },
+  });
+
+  const handleSearch = () => {
+    setAppliedFilters({ ...filters });
+    setPage(1);
+  };
+
+  const handleReset = () => {
+    const resetFilters = {
+      email: "",
+      nickname: "",
+      role: "",
+      provider: "",
+      status: "",
+      kindergartenName: "",
+    };
+    setFilters(resetFilters);
+    setAppliedFilters(resetFilters);
+    setPage(1);
+  };
+
+  if (error) {
+    return (
+      <Box>
+        <Typography color="error">
+          사용자 목록을 불러오는데 실패했습니다: {(error as Error).message}
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        사용자 관리
+      </Typography>
+
+      {/* 검색 필터 */}
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: 2,
+            mb: 2,
+          }}
+        >
+          <TextField
+            label="이메일"
+            value={filters.email}
+            onChange={(e) => setFilters({ ...filters, email: e.target.value })}
+            size="small"
+          />
+          <TextField
+            label="닉네임"
+            value={filters.nickname}
+            onChange={(e) =>
+              setFilters({ ...filters, nickname: e.target.value })
+            }
+            size="small"
+          />
+          <FormControl size="small">
+            <InputLabel>역할</InputLabel>
+            <Select
+              value={filters.role}
+              onChange={(e) => setFilters({ ...filters, role: e.target.value })}
+              label="역할"
+            >
+              <MenuItem value="">전체</MenuItem>
+              <MenuItem value="TEACHER">교사</MenuItem>
+              <MenuItem value="PROSPECTIVE_TEACHER">예비교사</MenuItem>
+              <MenuItem value="GENERAL">일반사용자</MenuItem>
+              <MenuItem value="ADMIN">관리자</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl size="small">
+            <InputLabel>가입 방식</InputLabel>
+            <Select
+              value={filters.provider}
+              onChange={(e) =>
+                setFilters({ ...filters, provider: e.target.value })
+              }
+              label="가입 방식"
+            >
+              <MenuItem value="">전체</MenuItem>
+              <MenuItem value="LOCAL">로컬</MenuItem>
+              <MenuItem value="GOOGLE">구글</MenuItem>
+              <MenuItem value="KAKAO">카카오</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl size="small">
+            <InputLabel>상태</InputLabel>
+            <Select
+              value={filters.status}
+              onChange={(e) =>
+                setFilters({ ...filters, status: e.target.value })
+              }
+              label="상태"
+            >
+              <MenuItem value="">전체</MenuItem>
+              <MenuItem value="ACTIVE">활성</MenuItem>
+              <MenuItem value="INACTIVE">비활성</MenuItem>
+              <MenuItem value="SUSPENDED">정지</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            label="유치원명"
+            value={filters.kindergartenName}
+            onChange={(e) =>
+              setFilters({ ...filters, kindergartenName: e.target.value })
+            }
+            size="small"
+          />
+        </Box>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <Button variant="contained" onClick={handleSearch}>
+            검색
+          </Button>
+          <Button variant="outlined" onClick={handleReset}>
+            초기화
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* 테이블 */}
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>사용자 ID</TableCell>
+              <TableCell>이메일</TableCell>
+              <TableCell>닉네임</TableCell>
+              <TableCell>역할</TableCell>
+              <TableCell>가입 방식</TableCell>
+              <TableCell>상태</TableCell>
+              <TableCell>유치원명</TableCell>
+              <TableCell>리뷰 작성</TableCell>
+              <TableCell>가입일</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={9} align="center">
+                  로딩 중...
+                </TableCell>
+              </TableRow>
+            ) : data?.content?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} align="center">
+                  데이터가 없습니다.
+                </TableCell>
+              </TableRow>
+            ) : (
+              data?.content?.map((user) => (
+                <TableRow key={user.userId}>
+                  <TableCell>{user.userId}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.nickname}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={roleLabels[user.role] || user.role}
+                      size="small"
+                      color={user.role === "ADMIN" ? "error" : "default"}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {providerLabels[user.provider] || user.provider}
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={statusLabels[user.status] || user.status}
+                      size="small"
+                      color={
+                        user.status === "ACTIVE"
+                          ? "success"
+                          : user.status === "SUSPENDED"
+                          ? "error"
+                          : "default"
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>{user.kindergartenName || "-"}</TableCell>
+                  <TableCell>{user.hasWrittenReview ? "✅" : "❌"}</TableCell>
+                  <TableCell>
+                    {new Date(user.createdAt).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* 페이지네이션 */}
+      {data?.totalPages && data.totalPages > 1 && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+          <Pagination
+            count={data.totalPages}
+            page={page}
+            onChange={(_, newPage) => setPage(newPage)}
+            color="primary"
+          />
+        </Box>
+      )}
+    </Box>
+  );
+};

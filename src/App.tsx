@@ -10,7 +10,7 @@ import { useAuth } from "./hooks/useAuth";
 import { LoginPage } from "./components/auth/LoginPage";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { Layout } from "./components/layout/Layout";
-import { UserList } from "./components/users/SimpleUserList";
+import { UserList } from "./components/users/UserList";
 import { InquiryList } from "./components/inquiries/SimpleInquiryList";
 import { CommunityList } from "./components/community/SimpleCommunityList";
 import { KindergartenList } from "./components/kindergartens/SimpleKindergartenList";
