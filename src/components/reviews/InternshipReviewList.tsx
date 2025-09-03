@@ -103,17 +103,18 @@ const ConditionalDatagrid = () => {
     <Datagrid rowClick="show">
       <TextField source="internshipReviewId" label="리뷰 ID" />
       <FunctionField
+        label="작성자 ID"
+        render={(record: any) => record.user?.userId || "0"}
+      />
+      <FunctionField
         label="작성자"
         render={(record: any) => record.user?.nickname || "익명"}
       />
-      <NumberField source="kindergartenId" label="ID" />
       <TextField source="kindergartenName" label="유치원" />
       <TextField source="oneLineComment" label="한줄평" />
-      <NumberField source="benefitAndSalaryScore" label="급여/복리후생" />
-      <NumberField source="workLifeBalanceScore" label="워라밸" />
-      <NumberField source="workEnvironmentScore" label="근무환경" />
-      <NumberField source="managerScore" label="원장/동료" />
-      <NumberField source="customerScore" label="아이/학부모" />
+      <NumberField source="workEnvironmentScore" label="분위기" />
+      <NumberField source="learningSupportScore" label="학습도움" />
+      <NumberField source="instructionTeacherScore" label="지도교사" />
       <NumberField source="likeCount" label="좋아요" />
       <DateField source="createdAt" label="작성일" showTime />
     </Datagrid>
