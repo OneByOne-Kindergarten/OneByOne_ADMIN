@@ -9,8 +9,8 @@ const ID_FIELD_MAP: Record<string, string> = {
   kindergartens: "kindergartenId",
   community: "communityId",
   inquiries: "inquiryId",
-  work_reviews: "workReviewId",
-  internship_reviews: "internshipReviewId",
+  "work-reviews": "workReviewId",
+  "internship-reviews": "internshipReviewId",
 };
 
 // 범용 ID 매핑 함수
@@ -69,12 +69,22 @@ const getResourcePath = (resource: string, params?: any): string => {
     return API_PATHS.ADMIN.USERS.SEARCH;
   }
 
-  // 필수 파라미터가 있는 경우 처리
-  if (resource === "work-reviews" && params?.kindergartenId) {
-    return API_PATHS.REVIEWS.WORK.LIST(params.kindergartenId);
+  // 리뷰 리소스는 항상 kindergartenId가 필요하므로 특별 처리
+  if (resource === "work-reviews") {
+    if (params?.filter?.kindergartenId) {
+      return API_PATHS.REVIEWS.WORK.LIST(params.filter.kindergartenId);
+    } else {
+      // kindergartenId가 없으면 더미 경로 반환 (실제 호출되지 않음)
+      return "/work/reviews/0";
+    }
   }
-  if (resource === "internship-reviews" && params?.kindergartenId) {
-    return API_PATHS.REVIEWS.INTERNSHIP.LIST(params.kindergartenId);
+  if (resource === "internship-reviews") {
+    if (params?.filter?.kindergartenId) {
+      return API_PATHS.REVIEWS.INTERNSHIP.LIST(params.filter.kindergartenId);
+    } else {
+      // kindergartenId가 없으면 더미 경로 반환 (실제 호출되지 않음)
+      return "/internship/reviews/0";
+    }
   }
 
   return pathMap[resource] || `/${resource}`;
@@ -93,7 +103,10 @@ const formatFilterParams = (
 
   Object.entries(filter).forEach(([key, value]) => {
     if (value !== null && value !== undefined && value !== "") {
-      params[key] = String(value);
+      // kindergartenId는 path parameter이므로 query parameter에서 제외
+      if (key !== "kindergartenId") {
+        params[key] = String(value);
+      }
     }
   });
 
@@ -106,23 +119,44 @@ export const dataProvider: DataProvider = {
     const { field, order } = params.sort || { field: "id", order: "ASC" };
 
     // 리뷰 리소스인 경우 kindergartenId 필수 - 빈 결과 반환으로 API 호출 방지
-    if (
-      (resource === "work-reviews" || resource === "internship-reviews") &&
-      !params.filter?.kindergartenId
-    ) {
-      // 에러 대신 빈 결과 반환하여 API 호출을 완전히 방지하면서도 필터는 표시
-      return Promise.resolve({
-        data: [],
-        total: 0,
-      });
+    if (resource === "work-reviews" || resource === "internship-reviews") {
+      const kindergartenId = params.filter?.kindergartenId;
+      const hasValidKindergartenId =
+        kindergartenId &&
+        kindergartenId !== "" &&
+        kindergartenId !== null &&
+        kindergartenId !== undefined &&
+        !isNaN(Number(kindergartenId)) &&
+        Number(kindergartenId) > 0;
+
+      if (!hasValidKindergartenId) {
+        // 필터 UI가 보이도록 하기 위해 더미 데이터와 함께 반환
+        // 실제로는 EmptyComponent에서 메시지를 표시
+        return Promise.resolve({
+          data: [{ id: "_placeholder_", _isPlaceholder: true }],
+          total: 1,
+        });
+      }
     }
 
-    const queryParams = {
-      page: String(page - 1), // 0-based pagination
-      size: String(perPage),
-      ...(field && order ? { sort: formatSortParam(field, order) } : {}),
-      ...formatFilterParams(params.filter),
-    };
+    // 리뷰 리소스는 API 스펙에 맞게 파라미터 구성
+    let queryParams: Record<string, string>;
+
+    if (resource === "work-reviews" || resource === "internship-reviews") {
+      queryParams = {
+        page: String(page - 1), // 0-based pagination
+        size: String(perPage),
+        ...formatFilterParams(params.filter),
+      };
+    } else {
+      // 다른 리소스는 기존 방식 유지
+      queryParams = {
+        page: String(page - 1), // 0-based pagination
+        size: String(perPage),
+        ...(field && order ? { sort: formatSortParam(field, order) } : {}),
+        ...formatFilterParams(params.filter),
+      };
+    }
 
     const path = getResourcePath(resource, params.filter);
     const queryString = new URLSearchParams(queryParams).toString();

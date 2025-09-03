@@ -9,7 +9,9 @@ import {
   FilterButton,
   NumberInput,
   SelectInput,
+  useListContext,
 } from "react-admin";
+import { Typography, Box } from "@mui/material";
 
 const WorkReviewFilters = [
   <NumberInput
@@ -62,24 +64,32 @@ const WorkReviewActions = () => (
   </TopToolbar>
 );
 
-export const WorkReviewList = () => (
-  <List
-    filters={WorkReviewFilters}
-    actions={<WorkReviewActions />}
-    title="근무 리뷰 관리"
-    perPage={25}
-    sort={{ field: "createdAt", order: "DESC" }}
-    filterDefaultValues={{ sortType: "LATEST" }}
-  >
+const ConditionalDatagrid = () => {
+  const { filterValues, data } = useListContext();
+
+  // 유치원 ID가 없는 경우 메시지 표시
+  if (!filterValues?.kindergartenId || (data && data[0]?._isPlaceholder)) {
+    return (
+      <Box sx={{ p: 3, textAlign: "center" }}>
+        <Typography variant="h6" color="textSecondary">
+          유치원 ID를 입력해주세요
+        </Typography>
+        <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+          근무 리뷰를 조회하기 위해서는 필터에서 유치원 ID를 입력해주세요.
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
     <Datagrid rowClick="show">
       <TextField source="workReviewId" label="리뷰 ID" />
       <FunctionField
         label="작성자"
         render={(record: any) => record.user?.nickname || "익명"}
       />
-      <NumberField source="kindergartenId" label="유치원 ID" />
-      <TextField source="kindergartenName" label="유치원명" />
-      <NumberField source="workYear" label="근무년차" />
+      <NumberField source="kindergartenId" label="ID" />
+      <TextField source="kindergartenName" label="유치원" />
       <TextField source="oneLineComment" label="한줄평" />
       <NumberField source="benefitAndSalaryScore" label="급여/복리후생" />
       <NumberField source="workLifeBalanceScore" label="워라밸" />
@@ -87,9 +97,46 @@ export const WorkReviewList = () => (
       <NumberField source="managerScore" label="원장/동료" />
       <NumberField source="customerScore" label="아이/학부모" />
       <NumberField source="likeCount" label="좋아요" />
-      <NumberField source="shareCount" label="공유" />
       <DateField source="createdAt" label="작성일" showTime />
       <TextField source="workType" label="근무형태" />
+      <NumberField source="workYear" label="근무년차" />
     </Datagrid>
+  );
+};
+
+const EmptyComponent = () => {
+  const { filterValues } = useListContext();
+
+  // 유치원 ID가 입력되었지만 데이터가 없는 경우
+  if (filterValues?.kindergartenId) {
+    return (
+      <Box sx={{ p: 3, textAlign: "center" }}>
+        <Typography variant="h6" color="textSecondary">
+          해당 유치원의 근무 리뷰가 없습니다
+        </Typography>
+        <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+          유치원 ID {filterValues.kindergartenId}에 대한 근무 리뷰가 존재하지
+          않습니다.
+        </Typography>
+      </Box>
+    );
+  }
+
+  // 기본 상황 (유치원 ID 미입력)
+  return null;
+};
+
+export const WorkReviewList = () => (
+  <List
+    filters={WorkReviewFilters}
+    actions={<WorkReviewActions />}
+    title="근무 리뷰 관리"
+    perPage={25}
+    filterDefaultValues={{}}
+    disableSyncWithLocation={false}
+    sort={{ field: "id", order: "ASC" }}
+    empty={<EmptyComponent />}
+  >
+    <ConditionalDatagrid />
   </List>
 );
