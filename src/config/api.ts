@@ -68,13 +68,18 @@ export const API_PATHS = {
   NOTICE: {
     BASE: "/notice",
     ADMIN: "/admin/notice",
-    STATUS: (noticeId: number) => `/admin/notice/${noticeId}/status`,
+    DETAIL: (noticeId: number) => `/admin/notice/${noticeId}`,
+    PUBLIC_STATUS: (noticeId: number) =>
+      `/admin/notice/${noticeId}/public-status`,
   },
 
   // 신고 관리
   REPORT: {
     BASE: "/report",
     MY: "/report/my",
+    ADMIN: "/admin/report",
+    DETAIL: (reportId: number) => `/admin/report/${reportId}`,
+    STATUS: (reportId: number) => `/admin/report/${reportId}/status`,
   },
 
   // 즐겨찾기 관리

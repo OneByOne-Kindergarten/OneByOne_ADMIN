@@ -3,7 +3,7 @@ import { apiCall } from "@/utils/api";
 import { API_PATHS } from "@/config/api";
 
 export const authProvider: AuthProvider = {
-  // 실제 API를 사용한 로그인 (간단한 에러 처리)
+  // 실제 API를 사용한 로그인
   login: async ({ username, password }) => {
     try {
       // 로그인 API 호출

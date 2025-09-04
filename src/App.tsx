@@ -6,6 +6,11 @@ import { CommunityList } from "./components/community/CommunityList";
 import { KindergartenList } from "./components/kindergartens/KindergartenList";
 import { WorkReviewList } from "./components/reviews/WorkReviewList";
 import { InternshipReviewList } from "./components/reviews/InternshipReviewList";
+import { ReportList } from "./components/reports/ReportList";
+import { ReportEdit } from "./components/reports/ReportEdit";
+import { NoticeList } from "./components/notices/NoticeList";
+import { NoticeCreate } from "./components/notices/NoticeCreate";
+import { NoticeEdit } from "./components/notices/NoticeEdit";
 import { dataProvider } from "./providers/dataProvider";
 import { authProvider } from "./providers/authProvider";
 
@@ -17,6 +22,14 @@ function App() {
       dashboard={Dashboard}
       title="원바원 관리자"
     >
+      <Resource
+        name="notices"
+        list={NoticeList}
+        edit={NoticeEdit}
+        create={NoticeCreate}
+        recordRepresentation={(record) => record.title}
+        options={{ label: "공지사항 관리" }}
+      />
       <Resource
         name="users"
         list={UserList}
@@ -34,14 +47,6 @@ function App() {
         edit={EditGuesser}
         recordRepresentation={(record) => record.name}
         options={{ label: "유치원 관리" }}
-      />
-      <Resource
-        name="inquiries"
-        list={InquiryList}
-        show={ShowGuesser}
-        edit={EditGuesser}
-        recordRepresentation={(record) => record.title}
-        options={{ label: "문의 관리" }}
       />
       <Resource
         name="work-reviews"
@@ -68,6 +73,22 @@ function App() {
         edit={EditGuesser}
         recordRepresentation={(record) => record.title}
         options={{ label: "커뮤니티 관리" }}
+      />
+      <Resource
+        name="inquiries"
+        list={InquiryList}
+        show={ShowGuesser}
+        edit={EditGuesser}
+        recordRepresentation={(record) => record.title}
+        options={{ label: "문의 관리" }}
+      />
+      <Resource
+        name="reports"
+        list={ReportList}
+        show={ShowGuesser}
+        edit={ReportEdit}
+        recordRepresentation={(record) => `신고 #${record.id}`}
+        options={{ label: "신고 관리" }}
       />
     </Admin>
   );
