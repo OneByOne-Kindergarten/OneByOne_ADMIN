@@ -2,7 +2,9 @@ import { Admin, Resource, ShowGuesser, EditGuesser } from "react-admin";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { UserList } from "./components/users/UserList";
 import { InquiryList } from "./components/inquiries/InquiryList";
+import { InquiryShowActions } from "./components/inquiries/InquiryActions";
 import { CommunityList } from "./components/community/CommunityList";
+import { CommunityCreate } from "./components/community/CommunityCreate";
 import { KindergartenList } from "./components/kindergartens/KindergartenList";
 import { WorkReviewList } from "./components/reviews/WorkReviewList";
 import { InternshipReviewList } from "./components/reviews/InternshipReviewList";
@@ -69,6 +71,7 @@ function App() {
       <Resource
         name="community"
         list={CommunityList}
+        create={CommunityCreate}
         show={ShowGuesser}
         edit={EditGuesser}
         recordRepresentation={(record) => record.title}
@@ -77,8 +80,9 @@ function App() {
       <Resource
         name="inquiries"
         list={InquiryList}
-        show={ShowGuesser}
-        edit={EditGuesser}
+        show={(props) => (
+          <ShowGuesser {...props} actions={<InquiryShowActions />} />
+        )}
         recordRepresentation={(record) => record.title}
         options={{ label: "문의 관리" }}
       />

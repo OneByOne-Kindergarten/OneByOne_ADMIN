@@ -295,6 +295,41 @@ const buildUpdateRequest = (resource: string, params: any) => {
     };
   }
 
+  // 문의 액션 처리 (마감/답변)
+  if (resource === "inquiries" && params.data.action) {
+    if (params.data.action === "close") {
+      return {
+        path: API_PATHS.INQUIRY.CLOSE(parseInt(params.id)),
+        method: "POST",
+        data: undefined,
+      };
+    }
+    if (params.data.action === "answer") {
+      return {
+        path: API_PATHS.INQUIRY.ANSWER(parseInt(params.id)),
+        method: "POST",
+        data: { answer: params.data.answer },
+      };
+    }
+  }
+
+  // 리뷰 수정 처리
+  if (resource === "work-reviews") {
+    return {
+      path: API_PATHS.REVIEWS.WORK.BASE,
+      method: "PUT",
+      data: params.data,
+    };
+  }
+
+  if (resource === "internship-reviews") {
+    return {
+      path: API_PATHS.REVIEWS.INTERNSHIP.BASE,
+      method: "PUT",
+      data: params.data,
+    };
+  }
+
   // 기본 업데이트
   return {
     path: `${getResourcePath(resource)}/${params.id}`,
@@ -542,20 +577,34 @@ export const dataProvider: DataProvider = {
   },
 
   deleteMany: async (resource: any, params: any) => {
-    const basePath = getResourcePath(resource);
+    console.log(`🗑️ Attempting to delete ${resource} with IDs:`, params.ids);
 
     try {
-      const promises = params.ids.map((id: any) =>
-        apiCallWithRetry<void, unknown>({
-          method: "DELETE",
-          path: `${basePath}/${id}`,
-        })
-      );
+      const promises = params.ids.map((id: any) => {
+        // 커뮤니티 리소스는 특별한 경로 사용
+        const path =
+          resource === "community"
+            ? API_PATHS.COMMUNITY.DELETE(parseInt(id))
+            : `${getResourcePath(resource)}/${id}`;
 
-      await Promise.all(promises);
+        console.log(`🔗 DELETE request to:`, path);
+
+        return apiCallWithRetry<void, unknown>({
+          method: "DELETE",
+          path,
+        });
+      });
+
+      const results = await Promise.all(promises);
+      console.log(`✅ Delete API results:`, results);
+
+      if (process.env.NODE_ENV === "development") {
+        console.log(`Successfully deleted ${resource} IDs:`, params.ids);
+      }
+
       return { data: params.ids };
     } catch (error) {
-      console.error(`Failed to delete multiple ${resource}:`, error);
+      console.error(`❌ Failed to delete multiple ${resource}:`, error);
       throw new Error(`${resource} 일괄 삭제에 실패했습니다.`);
     }
   },

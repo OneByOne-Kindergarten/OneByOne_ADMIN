@@ -2,8 +2,6 @@ import {
   List,
   Datagrid,
   TextField,
-  EditButton,
-  ShowButton,
   TopToolbar,
   CreateButton,
   ExportButton,
@@ -90,8 +88,6 @@ export const KindergartenList = () => (
           </span>
         )}
       />
-      <ShowButton />
-      <EditButton />
     </Datagrid>
   </List>
 );

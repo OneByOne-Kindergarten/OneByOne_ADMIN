@@ -13,7 +13,7 @@ import {
   useNotify,
   useRefresh,
 } from "react-admin";
-import { Typography, Switch, FormControlLabel } from "@mui/material";
+import { Typography, Switch } from "@mui/material";
 
 const NoticeListActions = () => (
   <TopToolbar>
@@ -65,17 +65,12 @@ const PublicStatusToggle = ({ record }: { record: any }) => {
   };
 
   return (
-    <FormControlLabel
-      control={
-        <Switch
-          checked={record.public}
-          onChange={handleToggle}
-          color="primary"
-          size="small"
-        />
-      }
-      label={record.public ? "공개" : "비공개"}
-      labelPlacement="end"
+    <Switch
+      checked={record.public}
+      onChange={handleToggle}
+      color="primary"
+      size="medium"
+      sx={{ transform: "scale(1.2)" }}
     />
   );
 };
@@ -103,17 +98,23 @@ export const NoticeList = () => (
     empty={<EmptyComponent />}
     sort={{ field: "createdAt", order: "DESC" }}
   >
-    <Datagrid bulkActionButtons={<NoticeBulkActions />}>
+    <Datagrid bulkActionButtons={<NoticeBulkActions />} rowClick={false}>
       <TextField source="id" label="ID" />
-      <TextField source="title" label="제목" />
+      <TextField source="title" label="제목" sx={{ minWidth: 500 }} />
       <TextField source="content" label="내용" />
+      <BooleanField source="public" label="공개" sx={{ width: 40 }} />
       <FunctionField
-        label="공개 상태"
+        label="공개 변경"
         render={(record: any) => <PublicStatusToggle record={record} />}
+        sx={{ width: 300 }}
       />
-      <BooleanField source="pushSend" label="푸시 전송" />
-      <DateField source="createdAt" label="작성일" showTime />
-      <DateField source="updatedAt" label="수정일" showTime />
+      <BooleanField source="pushSend" label="푸시 전송" sx={{ width: 60 }} />
+      <DateField
+        source="createdAt"
+        label="작성일"
+        showTime
+        sx={{ width: 300 }}
+      />
     </Datagrid>
   </List>
 );

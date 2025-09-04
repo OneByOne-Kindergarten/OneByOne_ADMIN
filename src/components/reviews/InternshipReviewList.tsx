@@ -100,7 +100,7 @@ const ConditionalDatagrid = () => {
   }
 
   return (
-    <Datagrid rowClick="show">
+    <Datagrid rowClick={false}>
       <TextField source="internshipReviewId" label="리뷰 ID" />
       <FunctionField
         label="작성자 ID"
