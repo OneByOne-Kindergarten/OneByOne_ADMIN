@@ -3,7 +3,6 @@ import {
   Datagrid,
   TextField,
   TopToolbar,
-  CreateButton,
   ExportButton,
   FilterButton,
   TextInput,
@@ -54,7 +53,6 @@ const KindergartenFilters = [
 const KindergartenActions = () => (
   <TopToolbar>
     <FilterButton />
-    <CreateButton />
     <ExportButton />
   </TopToolbar>
 );
@@ -73,7 +71,7 @@ export const KindergartenList = () => (
       <TextField source="establishment" label="설립 유형" />
       <TextField source="address" label="주소" />
       <FunctionField
-        label="리뷰 평점"
+        label="근무 리뷰 평점"
         render={(record: any) => (
           <span
             style={{

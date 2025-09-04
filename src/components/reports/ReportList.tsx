@@ -4,13 +4,14 @@ import {
   TextField,
   DateField,
   FunctionField,
-  FilterButton,
   SelectInput,
   TopToolbar,
   BulkDeleteButton,
   useListContext,
+  ExportButton,
 } from "react-admin";
-import { Chip, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
+import StatusChip from "@/components/common/StatusChip";
 
 const ReportFilters = [
   <SelectInput
@@ -54,7 +55,7 @@ const ReportFilters = [
 
 const ReportListActions = () => (
   <TopToolbar>
-    <FilterButton />
+    <ExportButton />
   </TopToolbar>
 );
 
@@ -65,21 +66,6 @@ const ReportBulkActions = () => (
 );
 
 const StatusField = ({ record }: { record: any }) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "warning";
-      case "PROCESSED":
-        return "success";
-      case "REJECTED":
-        return "error";
-      case "YET":
-        return "info";
-      default:
-        return "default";
-    }
-  };
-
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "PENDING":
@@ -96,11 +82,7 @@ const StatusField = ({ record }: { record: any }) => {
   };
 
   return (
-    <Chip
-      label={getStatusLabel(record.status)}
-      color={getStatusColor(record.status)}
-      size="small"
-    />
+    <StatusChip status={record.status} label={getStatusLabel(record.status)} />
   );
 };
 

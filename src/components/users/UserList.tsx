@@ -14,7 +14,8 @@ import {
   BulkExportButton,
   SearchInput,
 } from "react-admin";
-import { Chip } from "@mui/material";
+import StatusChip from "@/components/common/StatusChip";
+import RoleChip from "@/components/common/RoleChip";
 
 const UserFilters = [
   <SearchInput key="email" source="email" placeholder="이메일 검색" alwaysOn />,
@@ -49,7 +50,7 @@ const UserFilters = [
     source="provider"
     choices={[
       { id: "LOCAL", name: "로컬" },
-      { id: "GOOGLE", name: "구글" },
+      { id: "NAVER", name: "네이버" },
       { id: "KAKAO", name: "카카오" },
     ]}
     emptyText="전체"
@@ -67,7 +68,7 @@ const UserFilters = [
     source="status"
     choices={[
       { id: "ACTIVE", name: "활성" },
-      { id: "INACTIVE", name: "비활성" },
+      { id: "DELETED", name: "탈퇴" },
       { id: "SUSPENDED", name: "정지" },
     ]}
     emptyText="전체"
@@ -95,7 +96,7 @@ const UserBulkActionButtons = () => (
   </>
 );
 
-const RoleChip = ({ record }: { record: any }) => {
+const UserRoleField = ({ record }: { record: any }) => {
   const roleLabels: Record<string, string> = {
     TEACHER: "교사",
     PROSPECTIVE_TEACHER: "예비교사",
@@ -103,74 +104,29 @@ const RoleChip = ({ record }: { record: any }) => {
     ADMIN: "관리자",
   };
 
-  const roleColors: Record<
-    string,
-    | "primary"
-    | "secondary"
-    | "default"
-    | "error"
-    | "info"
-    | "success"
-    | "warning"
-  > = {
-    TEACHER: "primary",
-    PROSPECTIVE_TEACHER: "secondary",
-    GENERAL: "default",
-    ADMIN: "error",
-  };
-
   return (
-    <Chip
+    <RoleChip
+      role={record.role}
       label={roleLabels[record.role] || record.role}
-      color={roleColors[record.role] || "default"}
-      size="small"
     />
   );
 };
 
-const ProviderChip = ({ record }: { record: any }) => {
-  const providerLabels: Record<string, string> = {
-    LOCAL: "로컬",
-    GOOGLE: "구글",
-    KAKAO: "카카오",
-  };
-
-  return (
-    <Chip
-      label={providerLabels[record.provider] || record.provider}
-      variant="outlined"
-      size="small"
-    />
-  );
-};
-
-const StatusChip = ({ record }: { record: any }) => {
+const UserStatusField = ({ record }: { record: any }) => {
   const statusLabels: Record<string, string> = {
     ACTIVE: "활성",
-    INACTIVE: "비활성",
+    DELETED: "탈퇴",
     SUSPENDED: "정지",
   };
 
-  const statusColors: Record<
-    string,
-    | "primary"
-    | "secondary"
-    | "default"
-    | "error"
-    | "info"
-    | "success"
-    | "warning"
-  > = {
-    ACTIVE: "success",
-    INACTIVE: "default",
-    SUSPENDED: "error",
-  };
+  if (!record.status) {
+    return null;
+  }
 
   return (
-    <Chip
+    <StatusChip
+      status={record.status}
       label={statusLabels[record.status] || record.status}
-      color={statusColors[record.status] || "default"}
-      size="small"
     />
   );
 };
@@ -184,24 +140,19 @@ export const UserList = () => (
     sort={{ field: "createdAt", order: "DESC" }}
   >
     <Datagrid rowClick="show" bulkActionButtons={<UserBulkActionButtons />}>
-      <TextField source="userId" label="ID" />
+      <TextField source="id" label="ID" />
       <EmailField source="email" label="이메일" />
       <TextField source="nickname" label="닉네임" />
+      <TextField source="provider" label="가입 방법" />
       <FunctionField
         label="역할"
-        render={(record: any) => <RoleChip record={record} />}
-      />
-      <FunctionField
-        label="가입 방법"
-        render={(record: any) => <ProviderChip record={record} />}
+        render={(record: any) => <UserRoleField record={record} />}
       />
       <FunctionField
         label="상태"
-        render={(record: any) => <StatusChip record={record} />}
+        render={(record: any) => <UserStatusField record={record} />}
       />
-      <TextField source="kindergartenName" label="유치원명" />
       <BooleanField source="hasWrittenReview" label="리뷰 작성" />
-      <BooleanField source="isRestoredUser" label="복구 사용자" />
       <DateField source="createdAt" label="가입일" showTime />
     </Datagrid>
   </List>

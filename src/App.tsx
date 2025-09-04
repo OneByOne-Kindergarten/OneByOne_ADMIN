@@ -9,7 +9,7 @@ import { KindergartenList } from "./components/kindergartens/KindergartenList";
 import { WorkReviewList } from "./components/reviews/WorkReviewList";
 import { InternshipReviewList } from "./components/reviews/InternshipReviewList";
 import { ReportList } from "./components/reports/ReportList";
-import { ReportEdit } from "./components/reports/ReportEdit";
+import { ReportShowActions } from "./components/reports/ReportActions";
 import { NoticeList } from "./components/notices/NoticeList";
 import { NoticeCreate } from "./components/notices/NoticeCreate";
 import { NoticeEdit } from "./components/notices/NoticeEdit";
@@ -89,8 +89,12 @@ function App() {
       <Resource
         name="reports"
         list={ReportList}
-        show={ShowGuesser}
-        edit={ReportEdit}
+        show={(props) => (
+          <ShowGuesser {...props} actions={<ReportShowActions />} />
+        )}
+        edit={(props) => (
+          <ShowGuesser {...props} actions={<ReportShowActions />} />
+        )}
         recordRepresentation={(record) => `신고 #${record.id}`}
         options={{ label: "신고 관리" }}
       />

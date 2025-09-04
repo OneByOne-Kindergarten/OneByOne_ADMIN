@@ -4,7 +4,35 @@ import {
   TextInput,
   SelectInput,
   required,
+  FormDataConsumer,
 } from "react-admin";
+import { SUB_CATEGORY_CHOICES } from "@/constants/community";
+
+// 조건부 하위 카테고리 선택 컴포넌트
+const ConditionalSubCategorySelect = () => {
+  return (
+    <FormDataConsumer>
+      {({ formData }) => {
+        const category = formData?.category;
+        const choices = [
+          ...(SUB_CATEGORY_CHOICES[
+            category as keyof typeof SUB_CATEGORY_CHOICES
+          ] || []),
+        ];
+
+        return (
+          <SelectInput
+            source="categoryName"
+            label="하위 카테고리"
+            choices={choices}
+            validate={[required()]}
+            key={category}
+          />
+        );
+      }}
+    </FormDataConsumer>
+  );
+};
 
 export const CommunityCreate = () => (
   <Create title="커뮤니티 게시글 작성">
@@ -33,19 +61,7 @@ export const CommunityCreate = () => (
         validate={[required()]}
         defaultValue="TEACHER"
       />
-      <TextInput
-        source="communityCategoryName"
-        label="하위 카테고리명"
-        validate={[required()]}
-        fullWidth
-      />
-      <TextInput
-        source="communityCategoryDescription"
-        label="하위 카테고리 설명"
-        multiline
-        rows={3}
-        fullWidth
-      />
+      <ConditionalSubCategorySelect />
     </SimpleForm>
   </Create>
 );

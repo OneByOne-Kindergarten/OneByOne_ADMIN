@@ -4,19 +4,16 @@ import {
   TextField,
   DateField,
   TopToolbar,
-  CreateButton,
   ExportButton,
   FilterButton,
-  TextInput,
-  SearchInput,
   SelectInput,
   FunctionField,
   useListContext,
 } from "react-admin";
-import { Typography, Chip } from "@mui/material";
+import { Typography } from "@mui/material";
+import StatusChip from "@/components/common/StatusChip";
 
 const InquiryFilters = [
-  <SearchInput source="title" alwaysOn placeholder="문의 제목" />,
   <SelectInput
     label="상태"
     source="status"
@@ -31,32 +28,17 @@ const InquiryFilters = [
       },
     }}
   />,
-  <TextInput label="작성자" source="userNickname" />,
 ];
 
 const InquiryActions = () => (
   <TopToolbar>
     <FilterButton />
-    <CreateButton />
     <ExportButton />
   </TopToolbar>
 );
 
 // 문의 상태 스타일 컴포넌트
 const InquiryStatusField = ({ record }: { record: any }) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "PENDING":
-        return "warning";
-      case "ANSWERED":
-        return "success";
-      case "CLOSED":
-        return "default";
-      default:
-        return "default";
-    }
-  };
-
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "PENDING":
@@ -71,11 +53,7 @@ const InquiryStatusField = ({ record }: { record: any }) => {
   };
 
   return (
-    <Chip
-      label={getStatusLabel(record.status)}
-      color={getStatusColor(record.status)}
-      size="small"
-    />
+    <StatusChip status={record.status} label={getStatusLabel(record.status)} />
   );
 };
 

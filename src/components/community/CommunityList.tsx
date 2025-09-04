@@ -9,12 +9,18 @@ import {
   ExportButton,
   FilterButton,
   TextInput,
-  SelectField,
   DateInput,
   SearchInput,
   SelectInput,
   BulkDeleteButton,
+  FunctionField,
 } from "react-admin";
+import RoleChip from "@/components/common/RoleChip";
+import {
+  SUB_CATEGORY_LABELS,
+  CATEGORY_LABELS,
+  SUB_CATEGORY_CHOICES,
+} from "@/constants/community";
 
 const CommunityFilters = [
   <SearchInput source="title" alwaysOn placeholder="게시글 제목" />,
@@ -34,9 +40,24 @@ const CommunityFilters = [
       },
     }}
   />,
+  <SelectInput
+    label="하위 카테고리"
+    source="categoryName"
+    choices={[
+      ...SUB_CATEGORY_CHOICES.TEACHER,
+      ...SUB_CATEGORY_CHOICES.PROSPECTIVE_TEACHER,
+    ]}
+    emptyText="전체"
+    alwaysOn
+    sx={{
+      "& .MuiInputBase-root": {
+        height: "42px",
+        fontSize: "14px",
+      },
+    }}
+  />,
   <TextInput label="내용" source="content" />,
   <TextInput label="작성자" source="userName" />,
-  <TextInput label="하위 카테고리" source="categoryName" />,
   <DateInput label="시작일" source="startDate" />,
   <DateInput label="종료일" source="endDate" />,
 ];
@@ -51,10 +72,28 @@ const CommunityActions = () => {
   );
 };
 
-const categoryChoices = [
-  { id: "TEACHER", name: "교사" },
-  { id: "PROSPECTIVE_TEACHER", name: "예비교사" },
-];
+const CategoryField = ({ record }: { record: any }) => {
+  return (
+    <RoleChip
+      role={record.category}
+      label={
+        CATEGORY_LABELS[record.category as keyof typeof CATEGORY_LABELS] ||
+        record.category
+      }
+    />
+  );
+};
+
+const SubCategoryField = ({ record }: { record: any }) => {
+  const subCategoryValue = record.communityCategoryName || record.categoryName;
+
+  const label =
+    SUB_CATEGORY_LABELS[subCategoryValue as keyof typeof SUB_CATEGORY_LABELS] ||
+    subCategoryValue ||
+    "없음";
+
+  return <RoleChip role="GENERAL" label={label} />;
+};
 
 export const CommunityList = () => (
   <List
@@ -68,12 +107,14 @@ export const CommunityList = () => (
       <TextField source="id" label="ID" />
       <TextField source="title" label="제목" />
       <TextField source="content" label="내용" />
-      <SelectField
-        source="category"
-        choices={categoryChoices}
+      <FunctionField
         label="카테고리"
+        render={(record: any) => <CategoryField record={record} />}
       />
-      <TextField source="categoryName" label="하위 카테고리" />
+      <FunctionField
+        label="하위 카테고리"
+        render={(record: any) => <SubCategoryField record={record} />}
+      />
       <TextField source="userNickname" label="작성자" />
       <TextField source="id" label="작성자 ID" />
       <NumberField source="likeCount" label="좋아요 수" />

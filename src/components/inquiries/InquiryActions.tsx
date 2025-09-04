@@ -20,7 +20,6 @@ import { Close as CloseIcon, Reply as ReplyIcon } from "@mui/icons-material";
 const AnswerDialog = ({
   open,
   onClose,
-  record,
   onAnswer,
 }: {
   open: boolean;
