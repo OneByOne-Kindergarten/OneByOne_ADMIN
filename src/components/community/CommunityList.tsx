@@ -4,8 +4,6 @@ import {
   TextField,
   NumberField,
   DateField,
-  EditButton,
-  ShowButton,
   TopToolbar,
   CreateButton,
   ExportButton,
@@ -15,6 +13,7 @@ import {
   DateInput,
   SearchInput,
   SelectInput,
+  BulkDeleteButton,
 } from "react-admin";
 
 const CommunityFilters = [
@@ -42,13 +41,15 @@ const CommunityFilters = [
   <DateInput label="종료일" source="endDate" />,
 ];
 
-const CommunityActions = () => (
-  <TopToolbar>
-    <FilterButton />
-    <CreateButton />
-    <ExportButton />
-  </TopToolbar>
-);
+const CommunityActions = () => {
+  return (
+    <TopToolbar>
+      <FilterButton />
+      <CreateButton />
+      <ExportButton />
+    </TopToolbar>
+  );
+};
 
 const categoryChoices = [
   { id: "TEACHER", name: "교사" },
@@ -63,7 +64,7 @@ export const CommunityList = () => (
     perPage={25}
     sort={{ field: "createdAt", order: "DESC" }}
   >
-    <Datagrid rowClick="show">
+    <Datagrid rowClick="show" bulkActionButtons={<BulkDeleteButton />}>
       <TextField source="id" label="ID" />
       <TextField source="title" label="제목" />
       <TextField source="content" label="내용" />
@@ -79,9 +80,6 @@ export const CommunityList = () => (
       <NumberField source="commentCount" label="댓글 수" />
       <NumberField source="viewCount" label="조회 수" />
       <DateField source="createdAt" label="작성일" showTime />
-      <DateField source="updatedAt" label="수정일" showTime />
-      <ShowButton />
-      <EditButton />
     </Datagrid>
   </List>
 );
