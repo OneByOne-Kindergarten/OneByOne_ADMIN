@@ -14,6 +14,7 @@ export const API_PATHS = {
       LIST: "/admin/users",
       DETAIL: (userId: number) => `/admin/users/${userId}`,
       SEARCH: "/admin/users/search",
+      STATUS: (userId: number) => `/admin/users/${userId}/status`,
     },
   },
 
@@ -47,6 +48,7 @@ export const API_PATHS = {
       BASE: (postId: number) => `/community/${postId}/comment`,
       ALL: (postId: number) => `/community/${postId}/comment/all`,
       DELETE: (commentId: number) => `/comment/${commentId}`,
+      LIST: (postId: number) => `/community/${postId}/comment`,
     },
   },
 

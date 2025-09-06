@@ -14,8 +14,10 @@ import {
   BulkExportButton,
   SearchInput,
 } from "react-admin";
+import { useState } from "react";
 import StatusChip from "@/components/common/StatusChip";
 import RoleChip from "@/components/common/RoleChip";
+import UserStatusDialog from "./UserStatusDialog";
 
 const UserFilters = [
   <SearchInput key="email" source="email" placeholder="이메일 검색" alwaysOn />,
@@ -97,63 +99,84 @@ const UserBulkActionButtons = () => (
 );
 
 const UserRoleField = ({ record }: { record: any }) => {
-  const roleLabels: Record<string, string> = {
-    TEACHER: "교사",
-    PROSPECTIVE_TEACHER: "예비교사",
-    GENERAL: "일반사용자",
-    ADMIN: "관리자",
-  };
-
-  return (
-    <RoleChip
-      role={record.role}
-      label={roleLabels[record.role] || record.role}
-    />
-  );
+  return <RoleChip role={record.role} />;
 };
 
-const UserStatusField = ({ record }: { record: any }) => {
-  const statusLabels: Record<string, string> = {
-    ACTIVE: "활성",
-    DELETED: "탈퇴",
-    SUSPENDED: "정지",
-  };
-
+const UserStatusField = ({
+  record,
+  onStatusClick,
+}: {
+  record: any;
+  onStatusClick: (user: any) => void;
+}) => {
   if (!record.status) {
     return null;
   }
 
   return (
-    <StatusChip
-      status={record.status}
-      label={statusLabels[record.status] || record.status}
-    />
+    <div
+      onClick={(e) => {
+        e.stopPropagation();
+        onStatusClick(record);
+      }}
+      style={{ cursor: "pointer" }}
+    >
+      <StatusChip status={record.status} />
+    </div>
   );
 };
 
-export const UserList = () => (
-  <List
-    filters={UserFilters}
-    actions={<UserActions />}
-    title="유저 관리"
-    perPage={25}
-    sort={{ field: "createdAt", order: "DESC" }}
-  >
-    <Datagrid rowClick="show" bulkActionButtons={<UserBulkActionButtons />}>
-      <TextField source="id" label="ID" />
-      <EmailField source="email" label="이메일" />
-      <TextField source="nickname" label="닉네임" />
-      <TextField source="provider" label="가입 방법" />
-      <FunctionField
-        label="역할"
-        render={(record: any) => <UserRoleField record={record} />}
+export const UserList = () => {
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+
+  const handleStatusClick = (user: any) => {
+    setSelectedUser(user);
+    setStatusDialogOpen(true);
+  };
+
+  const handleStatusDialogClose = () => {
+    setStatusDialogOpen(false);
+    setSelectedUser(null);
+  };
+
+  return (
+    <>
+      <List
+        filters={UserFilters}
+        actions={<UserActions />}
+        title="유저 관리"
+        perPage={25}
+        sort={{ field: "createdAt", order: "DESC" }}
+      >
+        <Datagrid rowClick="show" bulkActionButtons={<UserBulkActionButtons />}>
+          <TextField source="id" label="ID" />
+          <EmailField source="email" label="이메일" />
+          <TextField source="nickname" label="닉네임" />
+          <TextField source="provider" label="가입 방법" />
+          <FunctionField
+            label="역할"
+            render={(record: any) => <UserRoleField record={record} />}
+          />
+          <FunctionField
+            label="상태"
+            render={(record: any) => (
+              <UserStatusField
+                record={record}
+                onStatusClick={handleStatusClick}
+              />
+            )}
+          />
+          <BooleanField source="hasWrittenReview" label="리뷰 작성" />
+          <DateField source="createdAt" label="가입일" showTime />
+        </Datagrid>
+      </List>
+
+      <UserStatusDialog
+        open={statusDialogOpen}
+        onClose={handleStatusDialogClose}
+        user={selectedUser}
       />
-      <FunctionField
-        label="상태"
-        render={(record: any) => <UserStatusField record={record} />}
-      />
-      <BooleanField source="hasWrittenReview" label="리뷰 작성" />
-      <DateField source="createdAt" label="가입일" showTime />
-    </Datagrid>
-  </List>
-);
+    </>
+  );
+};

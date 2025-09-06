@@ -1,10 +1,12 @@
 import { Admin, Resource, ShowGuesser, EditGuesser } from "react-admin";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { UserList } from "./components/users/UserList";
+import { UserShowActions } from "./components/users/UserShowActions";
 import { InquiryList } from "./components/inquiries/InquiryList";
 import { InquiryShowActions } from "./components/inquiries/InquiryActions";
 import { CommunityList } from "./components/community/CommunityList";
 import { CommunityCreate } from "./components/community/CommunityCreate";
+import { CommentList } from "./components/comments/CommentList";
 import { KindergartenList } from "./components/kindergartens/KindergartenList";
 import { WorkReviewList } from "./components/reviews/WorkReviewList";
 import { InternshipReviewList } from "./components/reviews/InternshipReviewList";
@@ -29,14 +31,18 @@ function App() {
         list={NoticeList}
         edit={NoticeEdit}
         create={NoticeCreate}
+        icon={() => <span>📢</span>}
         recordRepresentation={(record) => record.title}
         options={{ label: "공지사항 관리" }}
       />
       <Resource
         name="users"
         list={UserList}
-        show={ShowGuesser}
+        show={(props) => (
+          <ShowGuesser {...props} actions={<UserShowActions />} />
+        )}
         edit={EditGuesser}
+        icon={() => <span>👤</span>}
         recordRepresentation={(record) =>
           `${record.nickname} (${record.email})`
         }
@@ -47,6 +53,7 @@ function App() {
         list={KindergartenList}
         show={ShowGuesser}
         edit={EditGuesser}
+        icon={() => <span>🏫</span>}
         recordRepresentation={(record) => record.name}
         options={{ label: "유치원 관리" }}
       />
@@ -54,19 +61,21 @@ function App() {
         name="work-reviews"
         list={WorkReviewList}
         show={ShowGuesser}
+        icon={() => <span>💬</span>}
         recordRepresentation={(record) =>
           `${record.kindergartenName || "유치원"} 근무리뷰`
         }
-        options={{ label: "근무 리뷰 관리" }}
+        options={{ label: "리뷰 관리 - 근무" }}
       />
       <Resource
         name="internship-reviews"
         list={InternshipReviewList}
         show={ShowGuesser}
+        icon={() => <span>💬</span>}
         recordRepresentation={(record) =>
           `${record.kindergartenName || "유치원"} 실습리뷰`
         }
-        options={{ label: "실습 리뷰 관리" }}
+        options={{ label: "리뷰 관리 - 실습" }}
       />
       <Resource
         name="community"
@@ -74,8 +83,21 @@ function App() {
         create={CommunityCreate}
         show={ShowGuesser}
         edit={EditGuesser}
+        icon={() => <span>📝</span>}
         recordRepresentation={(record) => record.title}
-        options={{ label: "커뮤니티 관리" }}
+        options={{ label: "커뮤니티 관리 - 글" }}
+      />
+      <Resource
+        name="comments"
+        list={CommentList}
+        show={ShowGuesser}
+        icon={() => <span>📝</span>}
+        recordRepresentation={(record) =>
+          `댓글 #${record.commentId || record.id} (게시글 ${
+            record.communityId || record.postId
+          })`
+        }
+        options={{ label: "커뮤니티 관리 - 댓글" }}
       />
       <Resource
         name="inquiries"
@@ -83,6 +105,7 @@ function App() {
         show={(props) => (
           <ShowGuesser {...props} actions={<InquiryShowActions />} />
         )}
+        icon={() => <span>❓</span>}
         recordRepresentation={(record) => record.title}
         options={{ label: "문의 관리" }}
       />
@@ -95,6 +118,7 @@ function App() {
         edit={(props) => (
           <ShowGuesser {...props} actions={<ReportShowActions />} />
         )}
+        icon={() => <span>🚨</span>}
         recordRepresentation={(record) => `신고 #${record.id}`}
         options={{ label: "신고 관리" }}
       />

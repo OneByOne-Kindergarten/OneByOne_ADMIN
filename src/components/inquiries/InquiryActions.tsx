@@ -24,7 +24,6 @@ const AnswerDialog = ({
 }: {
   open: boolean;
   onClose: () => void;
-  record: any;
   onAnswer: (answer: string) => void;
 }) => {
   const [answer, setAnswer] = useState("");
@@ -129,33 +128,35 @@ export const InquiryShowActions = () => {
   const isPending = record.status === "PENDING";
 
   return (
-    <TopToolbar>
-      {isPending && (
-        <>
-          <Button
-            onClick={() => setAnswerDialogOpen(true)}
-            label="답변하기"
-            variant="contained"
-            color="primary"
-          >
-            <ReplyIcon />
-          </Button>
-          <Button
-            onClick={handleClose}
-            label="마감하기"
-            variant="outlined"
-            color="error"
-          >
-            <CloseIcon />
-          </Button>
-        </>
-      )}
+    <>
+      <TopToolbar>
+        {isPending && (
+          <>
+            <Button
+              onClick={() => setAnswerDialogOpen(true)}
+              label="답변하기"
+              variant="contained"
+              color="primary"
+            >
+              <ReplyIcon />
+            </Button>
+            <Button
+              onClick={handleClose}
+              label="마감하기"
+              variant="outlined"
+              color="error"
+            >
+              <CloseIcon />
+            </Button>
+          </>
+        )}
+      </TopToolbar>
+
       <AnswerDialog
         open={answerDialogOpen}
         onClose={() => setAnswerDialogOpen(false)}
-        record={record}
         onAnswer={handleAnswer}
       />
-    </TopToolbar>
+    </>
   );
 };

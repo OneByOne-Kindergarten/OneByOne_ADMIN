@@ -15,12 +15,30 @@ const getRoleColor = (role: string) => {
   }
 };
 
+const getRoleLabel = (role: string) => {
+  switch (role) {
+    case "TEACHER":
+      return "교사";
+    case "PROSPECTIVE_TEACHER":
+      return "예비교사";
+    case "GENERAL":
+      return "일반사용자";
+    case "ADMIN":
+      return "관리자";
+    default:
+      return role;
+  }
+};
+
 export default function RoleChip({
   role,
   label,
 }: {
   role: string;
-  label: string;
+  label?: string;
 }) {
-  return <CustomChip label={label} color={getRoleColor(role)} size="small" />;
+  const displayLabel = label || getRoleLabel(role);
+  return (
+    <CustomChip label={displayLabel} color={getRoleColor(role)} size="small" />
+  );
 }

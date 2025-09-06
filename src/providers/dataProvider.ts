@@ -13,11 +13,17 @@ const ID_FIELD_MAP: Record<string, string> = {
   notices: "noticeId",
   "work-reviews": "workReviewId",
   "internship-reviews": "internshipReviewId",
+  comments: "id",
 };
 
 // 리뷰 리소스 확인 함수
 const isReviewResource = (resource: string): boolean => {
   return resource === "work-reviews" || resource === "internship-reviews";
+};
+
+// 댓글 리소스 확인 함수
+const isCommentResource = (resource: string): boolean => {
+  return resource === "comments";
 };
 
 // 존재하지 않는 리소스 확인 함수
@@ -104,6 +110,11 @@ const getResourcePath = (resource: string, params?: any): string => {
     return getReviewPath(resource, params);
   }
 
+  // 댓글 리소스 처리
+  if (isCommentResource(resource)) {
+    return getCommentPath(params);
+  }
+
   return pathMap[resource] || `/${resource}`;
 };
 
@@ -135,11 +146,23 @@ const getReviewPath = (resource: string, params?: any): string => {
     : "/internship/reviews/0";
 };
 
+// 댓글 경로 생성 함수
+const getCommentPath = (params?: any): string => {
+  const postId = params?.filter?.postId;
+
+  if (postId) {
+    return API_PATHS.COMMUNITY.COMMENT.ALL(postId);
+  }
+
+  // postId가 없으면 더미 경로 반환
+  return "/community/0/comment/all";
+};
+
 // 쿼리 파라미터 생성 함수
 const buildQueryParams = (
   resource: string,
   params: any
-): Record<string, string> => {
+): Record<string, any> => {
   const { page, perPage } = params.pagination || { page: 1, perPage: 10 };
   const { field, order } = params.sort || { field: "id", order: "ASC" };
 
@@ -153,6 +176,17 @@ const buildQueryParams = (
     return {
       ...baseParams,
       ...formatFilterParams(params.filter),
+    };
+  }
+
+  // 댓글 리소스는 특별한 파라미터 처리 (JSON body 형태)
+  if (isCommentResource(resource)) {
+    const sort =
+      field && order ? [`${field},${order.toLowerCase()}`] : ["createdAt,desc"];
+    return {
+      page: page - 1, // 0-based pagination (숫자형)
+      size: perPage, // 숫자형
+      sort: sort, // 문자열 배열
     };
   }
 
@@ -191,7 +225,8 @@ const formatFilterParams = (
       value !== null &&
       value !== undefined &&
       value !== "" &&
-      key !== "kindergartenId"
+      key !== "kindergartenId" &&
+      key !== "postId"
     ) {
       params[key] = String(value);
     }
@@ -209,6 +244,19 @@ const isValidKindergartenId = (kindergartenId: any): boolean => {
     String(kindergartenId).trim() !== "" &&
     !isNaN(Number(kindergartenId)) &&
     Number(kindergartenId) > 0
+  );
+};
+
+// postId 유효성 검증
+const isValidPostId = (postId: any): boolean => {
+  return (
+    postId &&
+    postId !== "" &&
+    postId !== null &&
+    postId !== undefined &&
+    String(postId).trim() !== "" &&
+    !isNaN(Number(postId)) &&
+    Number(postId) > 0
   );
 };
 
@@ -267,6 +315,18 @@ const getDetailPath = (resource: string, id: string | number): string => {
 
 // 업데이트 요청 구성
 const buildUpdateRequest = (resource: string, params: any) => {
+  // 유저 상태 업데이트 - PATCH로 상태 변경
+  if (resource === "users" && params.data.status !== undefined) {
+    return {
+      path: API_PATHS.ADMIN.USERS.STATUS(parseInt(params.id)),
+      method: "PATCH",
+      data: {
+        status: params.data.status,
+        reason: params.data.reason || "",
+      },
+    };
+  }
+
   // 신고 상태 업데이트 - PATCH로 상태만 변경 (쿼리 파라미터 사용)
   if (resource === "reports") {
     return {
@@ -351,17 +411,36 @@ export const dataProvider: DataProvider = {
       });
     }
 
+    // 댓글 리소스의 경우 postId 검증
+    if (isCommentResource(resource) && !isValidPostId(params.filter?.postId)) {
+      return Promise.resolve({
+        data: [{ id: "_placeholder_", _isPlaceholder: true }],
+        total: 1,
+      });
+    }
+
     const queryParams = buildQueryParams(resource, params);
     const path = getResourcePath(resource, params);
-    const fullPath = `${path}?${new URLSearchParams(queryParams).toString()}`;
 
     try {
-      const response = await apiCallWithRetry<void, PaginatedResponse<unknown>>(
-        {
+      let response: any;
+
+      // 댓글 리소스는 GET 요청이지만 body에 파라미터 전송
+      if (isCommentResource(resource)) {
+        response = await apiCallWithRetry<any, PaginatedResponse<unknown>>({
+          method: "GET",
+          path,
+          data: queryParams, // body에 파라미터 전송
+        });
+      } else {
+        const fullPath = `${path}?${new URLSearchParams(
+          queryParams
+        ).toString()}`;
+        response = await apiCallWithRetry<void, PaginatedResponse<unknown>>({
           method: "GET",
           path: fullPath,
-        }
-      );
+        });
+      }
 
       return processListResponse(response, resource);
     } catch (error) {
@@ -556,11 +635,16 @@ export const dataProvider: DataProvider = {
   },
 
   delete: async (resource: any, params: any) => {
-    const basePath = getResourcePath(resource);
-    const path =
-      resource === "community"
-        ? API_PATHS.COMMUNITY.DELETE(parseInt(params.id))
-        : `${basePath}/${params.id}`;
+    let path: string;
+
+    if (resource === "community") {
+      path = API_PATHS.COMMUNITY.DELETE(parseInt(params.id));
+    } else if (resource === "comments") {
+      path = API_PATHS.COMMUNITY.COMMENT.DELETE(parseInt(params.id));
+    } else {
+      const basePath = getResourcePath(resource);
+      path = `${basePath}/${params.id}`;
+    }
 
     try {
       const response = await apiCallWithRetry<void, unknown>({
@@ -581,11 +665,15 @@ export const dataProvider: DataProvider = {
 
     try {
       const promises = params.ids.map((id: any) => {
-        // 커뮤니티 리소스는 특별한 경로 사용
-        const path =
-          resource === "community"
-            ? API_PATHS.COMMUNITY.DELETE(parseInt(id))
-            : `${getResourcePath(resource)}/${id}`;
+        let path: string;
+
+        if (resource === "community") {
+          path = API_PATHS.COMMUNITY.DELETE(parseInt(id));
+        } else if (resource === "comments") {
+          path = API_PATHS.COMMUNITY.COMMENT.DELETE(parseInt(id));
+        } else {
+          path = `${getResourcePath(resource)}/${id}`;
+        }
 
         console.log(`🔗 DELETE request to:`, path);
 

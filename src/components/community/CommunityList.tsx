@@ -73,15 +73,11 @@ const CommunityActions = () => {
 };
 
 const CategoryField = ({ record }: { record: any }) => {
-  return (
-    <RoleChip
-      role={record.category}
-      label={
-        CATEGORY_LABELS[record.category as keyof typeof CATEGORY_LABELS] ||
-        record.category
-      }
-    />
-  );
+  const categoryLabel =
+    CATEGORY_LABELS[record.category as keyof typeof CATEGORY_LABELS] ||
+    record.category;
+
+  return <RoleChip role={record.category} label={categoryLabel} />;
 };
 
 const SubCategoryField = ({ record }: { record: any }) => {
