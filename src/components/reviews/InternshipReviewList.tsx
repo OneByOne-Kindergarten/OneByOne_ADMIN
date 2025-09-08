@@ -10,6 +10,8 @@ import {
   NumberInput,
   SelectInput,
   useListContext,
+  BulkDeleteButton,
+  BulkExportButton,
 } from "react-admin";
 import { Typography, Box } from "@mui/material";
 
@@ -82,6 +84,13 @@ const InternshipReviewActions = () => (
   </TopToolbar>
 );
 
+const InternshipReviewBulkActionButtons = () => (
+  <>
+    <BulkExportButton />
+    <BulkDeleteButton />
+  </>
+);
+
 const ConditionalDatagrid = () => {
   const { filterValues, data } = useListContext();
 
@@ -100,7 +109,10 @@ const ConditionalDatagrid = () => {
   }
 
   return (
-    <Datagrid rowClick={false}>
+    <Datagrid
+      rowClick={false}
+      bulkActionButtons={<InternshipReviewBulkActionButtons />}
+    >
       <TextField source="internshipReviewId" label="리뷰 ID" />
       <FunctionField
         label="작성자 ID"

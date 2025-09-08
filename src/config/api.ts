@@ -58,11 +58,14 @@ export const API_PATHS = {
       BASE: "/work/review",
       LIST: (kindergartenId: number) => `/work/reviews/${kindergartenId}`,
       LIKE: (reviewId: number) => `/work/review/${reviewId}/like`,
+      DELETE: (workReviewId: number) => `/work/review/${workReviewId}`,
     },
     INTERNSHIP: {
       BASE: "/internship/review",
       LIST: (kindergartenId: number) => `/internship/reviews/${kindergartenId}`,
       LIKE: (reviewId: number) => `/internship/review/${reviewId}/like`,
+      DELETE: (internshipReviewId: number) =>
+        `/internship/review/${internshipReviewId}`,
     },
   },
 

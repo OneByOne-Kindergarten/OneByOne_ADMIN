@@ -641,6 +641,10 @@ export const dataProvider: DataProvider = {
       path = API_PATHS.COMMUNITY.DELETE(parseInt(params.id));
     } else if (resource === "comments") {
       path = API_PATHS.COMMUNITY.COMMENT.DELETE(parseInt(params.id));
+    } else if (resource === "work-reviews") {
+      path = API_PATHS.REVIEWS.WORK.DELETE(parseInt(params.id));
+    } else if (resource === "internship-reviews") {
+      path = API_PATHS.REVIEWS.INTERNSHIP.DELETE(parseInt(params.id));
     } else {
       const basePath = getResourcePath(resource);
       path = `${basePath}/${params.id}`;
@@ -671,6 +675,10 @@ export const dataProvider: DataProvider = {
           path = API_PATHS.COMMUNITY.DELETE(parseInt(id));
         } else if (resource === "comments") {
           path = API_PATHS.COMMUNITY.COMMENT.DELETE(parseInt(id));
+        } else if (resource === "work-reviews") {
+          path = API_PATHS.REVIEWS.WORK.DELETE(parseInt(id));
+        } else if (resource === "internship-reviews") {
+          path = API_PATHS.REVIEWS.INTERNSHIP.DELETE(parseInt(id));
         } else {
           path = `${getResourcePath(resource)}/${id}`;
         }
