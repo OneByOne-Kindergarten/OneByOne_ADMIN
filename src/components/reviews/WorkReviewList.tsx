@@ -3,7 +3,6 @@ import {
   Datagrid,
   TextField,
   NumberField,
-  DateField,
   FunctionField,
   TopToolbar,
   FilterButton,
@@ -14,6 +13,7 @@ import {
   BulkExportButton,
 } from "react-admin";
 import { Typography, Box } from "@mui/material";
+import { KoreanDateField } from "@/components/common/KoreanDateField";
 
 const WorkReviewFilters = [
   <NumberInput
@@ -114,7 +114,7 @@ const ConditionalDatagrid = () => {
       <NumberField source="managerScore" label="관리자" />
       <NumberField source="customerScore" label="고객" />
       <NumberField source="likeCount" label="좋아요" />
-      <DateField source="createdAt" label="작성일" showTime />
+      <KoreanDateField source="createdAt" label="작성일" showTime />
     </Datagrid>
   );
 };

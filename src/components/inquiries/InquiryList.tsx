@@ -2,7 +2,6 @@ import {
   List,
   Datagrid,
   TextField,
-  DateField,
   TopToolbar,
   ExportButton,
   FilterButton,
@@ -12,6 +11,7 @@ import {
 } from "react-admin";
 import { Typography } from "@mui/material";
 import StatusChip from "@/components/common/StatusChip";
+import { KoreanDateField } from "@/components/common/KoreanDateField";
 
 const InquiryFilters = [
   <SelectInput
@@ -93,7 +93,7 @@ export const InquiryList = () => (
         label="상태"
         render={(record: any) => <InquiryStatusField record={record} />}
       />
-      <DateField source="createdAt" label="작성일" showTime />
+      <KoreanDateField source="createdAt" label="작성일" showTime />
     </Datagrid>
   </List>
 );

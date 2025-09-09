@@ -3,7 +3,6 @@ import {
   Datagrid,
   TextField,
   NumberField,
-  DateField,
   TopToolbar,
   CreateButton,
   ExportButton,
@@ -16,6 +15,7 @@ import {
   FunctionField,
 } from "react-admin";
 import RoleChip from "@/components/common/RoleChip";
+import { KoreanDateField } from "@/components/common/KoreanDateField";
 import {
   SUB_CATEGORY_LABELS,
   CATEGORY_LABELS,
@@ -116,7 +116,7 @@ export const CommunityList = () => (
       <NumberField source="likeCount" label="좋아요 수" />
       <NumberField source="commentCount" label="댓글 수" />
       <NumberField source="viewCount" label="조회 수" />
-      <DateField source="createdAt" label="작성일" showTime />
+      <KoreanDateField source="createdAt" label="작성일" showTime />
     </Datagrid>
   </List>
 );

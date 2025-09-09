@@ -2,7 +2,6 @@ import {
   List,
   Datagrid,
   TextField,
-  DateField,
   FunctionField,
   TopToolbar,
   FilterButton,
@@ -14,6 +13,7 @@ import {
 import { Typography, Box } from "@mui/material";
 import StatusChip from "@/components/common/StatusChip";
 import RoleChip from "@/components/common/RoleChip";
+import { KoreanDateField } from "@/components/common/KoreanDateField";
 
 const CommentFilters = [
   <NumberInput
@@ -92,7 +92,7 @@ const ConditionalDatagrid = () => {
         label="상태"
         render={(record: any) => <CommentStatusField record={record} />}
       />
-      <DateField source="createdAt" label="작성일" showTime />
+      <KoreanDateField source="createdAt" label="작성일" showTime />
     </Datagrid>
   );
 };

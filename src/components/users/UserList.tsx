@@ -3,7 +3,6 @@ import {
   Datagrid,
   TextField,
   EmailField,
-  DateField,
   FunctionField,
   TopToolbar,
   FilterButton,
@@ -17,6 +16,7 @@ import {
 import { useState } from "react";
 import StatusChip from "@/components/common/StatusChip";
 import RoleChip from "@/components/common/RoleChip";
+import { KoreanDateField } from "@/components/common/KoreanDateField";
 import UserStatusDialog from "./UserStatusDialog";
 
 const UserFilters = [
@@ -168,7 +168,7 @@ export const UserList = () => {
             )}
           />
           <BooleanField source="hasWrittenReview" label="리뷰 작성" />
-          <DateField source="createdAt" label="가입일" showTime />
+          <KoreanDateField source="createdAt" label="가입일" showTime />
         </Datagrid>
       </List>
 
